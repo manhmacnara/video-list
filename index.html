@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý link video</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; max-width: 800px; margin: auto; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border-bottom: 1px solid #333; text-align: center; }
+        th { background-color: #1f1f1f; }
+        a { color: #1E90FF; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        input, button { padding: 8px 12px; margin-right: 10px; }
+        button { background-color: #4299e1; border: none; color: white; cursor: pointer; }
+        button:hover { background-color: #3182ce; }
+    </style>
+</head>
+<body>
+
+<h2>Danh sách Video yêu thích</h2>
+
+<input type="url" id="videoURL" placeholder="Dán link video vào đây">
+<input type="text" id="videoDuration" placeholder="Thời lượng (vd: 60 phút)">
+<button onclick="addVideo()">Thêm video</button>
+
+<table>
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Link video</th>
+            <th>Thời lượng</th>
+            <th>Lần click cuối</th>
+        </tr>
+    </thead>
+    <tbody id="videoList"></tbody>
+</table>
+
+<script>
+let videos = JSON.parse(localStorage.getItem('videos')) || [
+    { link: "https://www.tiktok.com/@faileskeb7p/video/7389890599555566849?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" },
+    { link: "https://www.tiktok.com/@houtiyoudouga/video/7409056181588675860?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" },
+    { link: "https://www.tiktok.com/@houtiyoudouga/video/7424536517596499207?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" },
+    { link: "https://www.tiktok.com/@houtiyoudouga/video/7454967246687849736?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" },
+    { link: "https://www.tiktok.com/@houtiyoudouga/video/7451525908265061650?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" },
+    { link: "https://www.tiktok.com/@faileskeb7p/video/7390359695346748689?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" },
+    { link: "https://www.tiktok.com/@faileskeb7p/video/7419672196907306257?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" },
+    { link: "https://www.tiktok.com/@poikatu.senshi/video/7477681680023833863?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" },
+    { link: "https://www.tiktok.com/@poikatu.senshi/video/7477259780252388626?_r=1&_t=8sYgDUZrdQH", duration: "60 phút", lastClicked: "Chưa click" }
+];
+
+renderVideos();
+
+function addVideo() {
+    const linkInput = document.getElementById('videoURL');
+    const durationInput = document.getElementById('videoDuration');
+
+    if (linkInput.value && durationInput.value) {
+        const video = { link: linkInput.value, duration: durationInput.value, lastClicked: 'Chưa click' };
+        videos.push(video);
+        localStorage.setItem('videos', JSON.stringify(videos));
+        renderVideos();
+        linkInput.value = '';
+        durationInput.value = '';
+    } else {
+        alert("Vui lòng nhập đầy đủ thông tin!");
+    }
+}
+
+function updateLastClicked(index) {
+    const now = new Date().toLocaleString();
+    videos[index].lastClicked = now;
+    localStorage.setItem('videos', JSON.stringify(videos));
+    renderVideos();
+}
+
+function renderVideos() {
+    const list = document.getElementById('videoList');
+    list.innerHTML = '';
+    videos.forEach((video, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td><a href="${video.link}" target="_blank" onclick="updateLastClicked(${index})">Xem video</a></td>
+            <td>${video.duration}</td>
+            <td>${video.lastClicked}</td>
+        `;
+        list.appendChild(row);
+    });
+}
+</script>
+
+</body>
+</html>
