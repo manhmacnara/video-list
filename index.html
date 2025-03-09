@@ -42,11 +42,7 @@ let videos = JSON.parse(localStorage.getItem('videos')) || [
     { link: "https://www.tiktok.com/@houtiyoudouga/video/7409056181588675860", duration: "60 phút", lastClicked: "Chưa click" },
     { link: "https://www.tiktok.com/@houtiyoudouga/video/7424536517596499207", duration: "60 phút", lastClicked: "Chưa click" },
     { link: "https://www.tiktok.com/@houtiyoudouga/video/7454967246687849736", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://www.tiktok.com/@houtiyoudouga/video/7451525908265061650", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://www.tiktok.com/@faileskeb7p/video/7390359695346748689", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://www.tiktok.com/@faileskeb7p/video/7419672196907306257", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://www.tiktok.com/@poikatu.senshi/video/7477681680023833863", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://www.tiktok.com/@poikatu.senshi/video/7477259780252388626", duration: "60 phút", lastClicked: "Chưa click" }
+    { link: "https://www.tiktok.com/@houtiyoudouga/video/7451525908265061650", duration: "60 phút", lastClicked: "Chưa click" }
 ];
 
 renderVideos();
@@ -56,7 +52,7 @@ function addVideo() {
     const durationInput = document.getElementById('videoDuration');
 
     if (linkInput.value && durationInput.value) {
-        const video = { link: linkInput.value, duration: durationInput.value, lastClicked: 'Chưa click' };
+        const video = { link: cleanTikTokURL(linkInput.value), duration: durationInput.value, lastClicked: 'Chưa click' };
         videos.push(video);
         localStorage.setItem('videos', JSON.stringify(videos));
         renderVideos();
@@ -72,6 +68,10 @@ function updateLastClicked(index) {
     videos[index].lastClicked = now;
     localStorage.setItem('videos', JSON.stringify(videos));
     renderVideos();
+}
+
+function cleanTikTokURL(url) {
+    return url.split('?')[0]; // Xóa tham số ?_r=1&_t=... để mở trực tiếp trên trình duyệt
 }
 
 function renderVideos() {
