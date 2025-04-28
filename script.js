@@ -1,7 +1,7 @@
-// Khi người dùng nhấp vào một liên kết
+// Lắng nghe sự kiện click trên tất cả các liên kết video
 document.querySelectorAll('.video-link').forEach(link => {
   link.addEventListener('click', function(event) {
-    // Ngăn chặn hành động mặc định của liên kết (chuyển hướng)
+    // Ngăn chặn hành động mặc định của liên kết
     event.preventDefault();
 
     // Lấy dòng (row) của liên kết đã nhấp
