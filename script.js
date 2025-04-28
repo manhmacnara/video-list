@@ -1,44 +1,47 @@
+// Khi người dùng nhấp vào một liên kết
 document.querySelectorAll('.video-link').forEach(link => {
   link.addEventListener('click', function(event) {
-    // Prevent the default behavior (optional)
+    // Ngăn chặn hành động mặc định của liên kết (chuyển hướng)
     event.preventDefault();
 
-    // Get the row of the clicked link
+    // Lấy dòng (row) của liên kết đã nhấp
     let row = this.closest('tr');
     
-    // Get the "Last Clicked" cell in the same row
+    // Lấy ô "Last Clicked" trong cùng dòng
     let lastClickedCell = row.querySelector('.last-clicked');
 
-    // Get the current time
+    // Lấy thời gian hiện tại
     let currentTime = new Date();
 
-    // Calculate the time difference in minutes since the page loaded
+    // Tính toán thời gian chênh lệch giữa lần tải trang và thời điểm nhấp vào link (tính theo phút)
     let timeDiffInMinutes = Math.floor((currentTime - window.startTime) / 60000);
 
-    // Update the "Last Clicked" cell with the formatted time difference
+    // Cập nhật ô "Last Clicked" với thời gian tính được
     lastClickedCell.textContent = `${timeDiffInMinutes} phút trước`;
 
-    // Store the last clicked time in localStorage using the URL as the key
-    let videoId = this.href;  // Use the URL as the key
+    // Lưu thông tin "Last Clicked" vào localStorage, sử dụng URL của video làm khóa (key)
+    let videoId = this.href;  // Sử dụng URL làm khóa
     localStorage.setItem(videoId, `${timeDiffInMinutes} phút trước`);
 
-    // Optionally, open the video in a new tab
+    // Mở video trong tab mới (tùy chọn)
     window.open(this.href, '_blank');
   });
 });
 
-// Load the stored "Last Clicked" data when the page is loaded
+// Khi trang được tải lại, kiểm tra và cập nhật thông tin "Last Clicked"
 document.addEventListener('DOMContentLoaded', function() {
-  // Store the start time when the page loads
+  // Lưu thời gian khi trang được tải
   window.startTime = new Date();
 
-  // Iterate through each row and check if there is a stored time for that video
+  // Kiểm tra xem có dữ liệu "Last Clicked" đã được lưu trong localStorage không
   document.querySelectorAll('.video-link').forEach(link => {
     let videoId = link.href;
+    
+    // Lấy dữ liệu từ localStorage
     let lastClickedTime = localStorage.getItem(videoId);
     
+    // Nếu có dữ liệu "Last Clicked" lưu trữ, hiển thị nó
     if (lastClickedTime) {
-      // If a time is stored, update the "Last Clicked" cell with that time
       let row = link.closest('tr');
       let lastClickedCell = row.querySelector('.last-clicked');
       lastClickedCell.textContent = lastClickedTime;
