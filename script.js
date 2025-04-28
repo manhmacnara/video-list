@@ -9,14 +9,14 @@ document.querySelectorAll('.video-link').forEach(link => {
     // Lấy ô "Last Clicked" trong cùng dòng
     let lastClickedCell = row.querySelector('.last-clicked');
 
-    // Lưu thời gian nhấp vào localStorage
+    // Lấy thời gian hiện tại
     let currentTime = new Date().getTime(); // Lấy thời gian hiện tại (tính bằng milliseconds)
-    
-    // Lưu thời gian nhấp chuột vào localStorage (sử dụng URL làm khóa)
-    let videoId = this.href;  // Sử dụng URL làm khóa
-    localStorage.setItem(videoId, currentTime);
 
-    // Tính toán thời gian nhấp và lưu lại (hiển thị ngay sau khi click)
+    // Lưu thời gian nhấp vào localStorage
+    let videoId = this.href;  // Sử dụng URL làm khóa
+    localStorage.setItem(videoId, currentTime); // Lưu thời gian nhấp chuột vào localStorage
+
+    // Cập nhật ô "Last Clicked" ngay lập tức
     lastClickedCell.textContent = `Đã click lúc ${new Date(currentTime).toLocaleTimeString()}`;
 
     // Mở video trong tab mới (tùy chọn)
@@ -26,17 +26,18 @@ document.querySelectorAll('.video-link').forEach(link => {
 
 // Khi trang được tải lại, kiểm tra và cập nhật thông tin "Last Clicked"
 document.addEventListener('DOMContentLoaded', function() {
-  // Kiểm tra xem có dữ liệu "Last Clicked" đã được lưu trong localStorage không
   document.querySelectorAll('.video-link').forEach(link => {
     let videoId = link.href;
 
     // Lấy thời gian nhấp chuột đã lưu trong localStorage
     let clickTime = localStorage.getItem(videoId);
-    
+
     if (clickTime) {
-      // Nếu có thời gian nhấp chuột, tính toán thời gian đã trôi qua từ lúc nhấp đến hiện tại
+      // Lấy thời gian hiện tại
       let currentTime = new Date().getTime();
-      let timeDiffInSeconds = Math.floor((currentTime - clickTime) / 1000); // Tính thời gian chênh lệch theo giây
+
+      // Tính toán thời gian đã trôi qua kể từ lúc nhấp vào video (tính theo giây)
+      let timeDiffInSeconds = Math.floor((currentTime - clickTime) / 1000);
 
       // Cập nhật ô "Last Clicked" với thời gian chênh lệch
       let row = link.closest('tr');
