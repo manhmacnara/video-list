@@ -20,15 +20,15 @@ document.querySelectorAll('.video-link').forEach(link => {
       localStorage.setItem('startTime', startTime);
     }
 
-    // Tính toán thời gian chênh lệch giữa lần tải trang và thời điểm nhấp vào liên kết (tính theo phút)
-    let timeDiffInMinutes = Math.floor((currentTime.getTime() - startTime) / 60000);
+    // Tính toán thời gian chênh lệch giữa lần tải trang và thời điểm nhấp vào liên kết (tính theo giây)
+    let timeDiffInSeconds = Math.floor((currentTime.getTime() - startTime) / 1000); // tính thời gian chênh lệch theo giây
 
     // Cập nhật ô "Last Clicked" với thời gian tính được
-    lastClickedCell.textContent = `${timeDiffInMinutes} phút trước`;
+    lastClickedCell.textContent = `${timeDiffInSeconds} giây trước`;
 
     // Lưu thông tin "Last Clicked" vào localStorage, sử dụng URL của video làm khóa (key)
     let videoId = this.href;  // Sử dụng URL làm khóa
-    localStorage.setItem(videoId, `${timeDiffInMinutes} phút trước`);
+    localStorage.setItem(videoId, `${timeDiffInSeconds} giây trước`);
 
     // Mở video trong tab mới (tùy chọn)
     window.open(this.href, '_blank');
