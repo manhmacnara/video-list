@@ -1,96 +1,66 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý link video</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #121212; color: #fff; max-width: 800px; margin: auto; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border-bottom: 1px solid #333; text-align: center; }
-        th { background-color: #1f1f1f; }
-        a { color: #1E90FF; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        input, button { padding: 8px 12px; margin-right: 10px; }
-        button { background-color: #4299e1; border: none; color: white; cursor: pointer; }
-        button:hover { background-color: #3182ce; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Trang web danh sách video">
+  <title>List Video 60 Phút</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header>
+    <div class="container">
+      <h1>List Video 60 Phút</h1>
+    </div>
+  </header>
 
-<h2>Danh sách Video yêu thích</h2>
+  <section class="video-list">
+    <div class="container">
+      <table>
+        <thead>
+          <tr>
+            <th>LINK</th>
+            <th>LITE</th>
+            <th>DURATION</th>
+            <th>LAST CLICKED</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://www.tiktok.com/@timerzxc/video/7421407239560301831?share_app_id=473824">Open</a></td>
+            <td><a href="https://lite.tiktok.com/t/ZS6rUfPCS/">Open Lite</a></td>
+            <td>60 phút</td>
+            <td>Chưa click</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.tiktok.com/@faileskeb7p/video/7389890599555566849?share_app_id=473824">Open</a></td>
+            <td><a href="https://lite.tiktok.com/t/ZS6rUywGN/">Open Lite</a></td>
+            <td>60 phút</td>
+            <td>Chưa click</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.tiktok.com/@bebeushi/video/7380604897227574535?share_app_id=473824">Open</a></td>
+            <td><a href="https://lite.tiktok.com/t/ZS6rUAkTU/">Open Lite</a></td>
+            <td>60 phút</td>
+            <td>Chưa click</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.tiktok.com/@houtiyoudouga/video/7424536517596499207?share_app_id=473824">Open</a></td>
+            <td><a href="https://lite.tiktok.com/t/ZS6rUtJ2s/">Open Lite</a></td>
+            <td>60 phút</td>
+            <td>Chưa click</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-<input type="url" id="videoURL" placeholder="Dán link video vào đây">
-<input type="text" id="videoDuration" placeholder="Thời lượng (vd: 60 phút)">
-<button onclick="addVideo()">Thêm video</button>
+  <footer>
+    <div class="container">
+      <p>© 2025 Giau Mobi - Tất cả các quyền được bảo vệ.</p>
+    </div>
+  </footer>
 
-<table>
-    <thead>
-        <tr>
-            <th>STT</th>
-            <th>Link video</th>
-            <th>Thời lượng</th>
-            <th>Lần click cuối</th>
-        </tr>
-    </thead>
-    <tbody id="videoList"></tbody>
-</table>
-
-<script>
-let videos = JSON.parse(localStorage.getItem('videos')) || [
-    { link: "https://lite.tiktok.com/t/ZSMqxhsym", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://lite.tiktok.com/t/ZSMqxxTob/", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://lite.tiktok.com/t/ZSMqxpYwY/", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://lite.tiktok.com/t/ZSMqxTf4p/", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://lite.tiktok.com/t/ZSMqxvjc7/", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://lite.tiktok.com/t/ZSMp8YRRS/", duration: "60 phút", lastClicked: "Chưa click" },
-    { link: "https://lite.tiktok.com/t/ZSMp881u6/", duration: "60 phút", lastClicked: "Chưa click" }
-];
-
-renderVideos();
-
-function addVideo() {
-    const linkInput = document.getElementById('videoURL');
-    const durationInput = document.getElementById('videoDuration');
-
-    if (linkInput.value && durationInput.value) {
-        const video = { link: cleanTikTokURL(linkInput.value), duration: durationInput.value, lastClicked: 'Chưa click' };
-        videos.push(video);
-        localStorage.setItem('videos', JSON.stringify(videos));
-        renderVideos();
-        linkInput.value = '';
-        durationInput.value = '';
-    } else {
-        alert("Vui lòng nhập đầy đủ thông tin!");
-    }
-}
-
-function updateLastClicked(index) {
-    const now = new Date().toLocaleString();
-    videos[index].lastClicked = now;
-    localStorage.setItem('videos', JSON.stringify(videos));
-    renderVideos();
-}
-
-function cleanTikTokURL(url) {
-    return url.split('?')[0]; // Xóa tham số ?_r=1&_t=... để mở trực tiếp trên trình duyệt
-}
-
-function renderVideos() {
-    const list = document.getElementById('videoList');
-    list.innerHTML = '';
-    videos.forEach((video, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td><a href="${video.link}" target="_blank" onclick="updateLastClicked(${index})">Xem video</a></td>
-            <td>${video.duration}</td>
-            <td>${video.lastClicked}</td>
-        `;
-        list.appendChild(row);
-    });
-}
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
