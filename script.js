@@ -12,10 +12,10 @@ document.querySelectorAll('.video-link').forEach(link => {
     // Lấy thời gian hiện tại
     let currentTime = new Date();
 
-    // Lấy thời gian bắt đầu trang từ localStorage (nếu đã lưu)
+    // Kiểm tra xem đã có thời gian bắt đầu (startTime) được lưu trong localStorage chưa
     let startTime = localStorage.getItem('startTime');
     if (!startTime) {
-      // Nếu lần đầu tiên, lưu thời gian bắt đầu trang vào localStorage
+      // Nếu chưa có, lưu thời gian bắt đầu vào localStorage
       startTime = currentTime.getTime();
       localStorage.setItem('startTime', startTime);
     }
