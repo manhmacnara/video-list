@@ -55,7 +55,7 @@
   <script>
     // Fetch account information from GitHub
     async function fetchAccountsFromGitHub() {
-      const fileUrl = 'https://raw.githubusercontent.com/manhmacnara/video-list/main/acc.txt';  // Raw URL to the acc.txt file
+      coconst fileUrl = `https://raw.githubusercontent.com/manhmacnara/video-list/main/acc.txt?${new Date().getTime()}`; // Raw URL to the acc.txt file
 
       try {
         const response = await fetch(fileUrl);
