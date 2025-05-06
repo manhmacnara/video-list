@@ -49,6 +49,9 @@
     <p><b>Thời gian lấy OTP lần cuối:</b> <span id="lastOtpTime"></span></p>
   </div>
 
+  <!-- Nút xóa dữ liệu trong localStorage -->
+  <button onclick="clearLocalStorage()">Xóa dữ liệu khỏi localStorage</button>
+
   <script>
     // Fetch account information from GitHub
     async function fetchAccountsFromGitHub() {
@@ -97,8 +100,6 @@
       const select = document.getElementById("accountSelect");
       select.innerHTML = '';  // Clear previous options
 
-      console.log("Tải danh sách tài khoản từ localStorage:", accounts);  // Log accounts data
-
       accounts.forEach((acc, index) => {
         const option = document.createElement("option");
         option.value = index;
@@ -108,29 +109,8 @@
 
       if (accounts.length > 0) {
         select.value = 0;
-        updateAccountInfo(0);
+        updateAccountInfo(0);  // Update account info for the first account
       }
-    }
-
-    // Save multiple accounts to localStorage
-    function saveAccounts() {
-      const accountString = document.getElementById('accountInput').value;
-      const accountStrings = accountString.split("\n");
-
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-
-      accountStrings.forEach(accountString => {
-        const accountFields = accountString.split("|");
-
-        if (accountFields.length === 6) {
-          const [user, password, email, pass_mail, refresh_token, client_id] = accountFields;
-          accounts.push({ user, password, email, pass_mail, refresh_token, client_id });
-        }
-      });
-
-      localStorage.setItem('accounts', JSON.stringify(accounts));
-      loadAccounts();
-      document.getElementById('accountInput').value = '';
     }
 
     // Update account info when selected from the list
@@ -149,21 +129,6 @@
       } else {
         document.getElementById("accountInfo").style.display = "none";
       }
-    }
-
-    // Delete selected accounts
-    function deleteSelectedAccounts() {
-      const select = document.getElementById("accountSelect");
-      const selectedIndices = Array.from(select.selectedOptions).map(option => option.value);
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-
-      selectedIndices.forEach(index => {
-        accounts.splice(index, 1);
-      });
-
-      localStorage.setItem('accounts', JSON.stringify(accounts));
-      loadAccounts();
-      document.getElementById("accountInfo").style.display = "none";
     }
 
     // Display last OTP time for the selected account
@@ -228,12 +193,20 @@
       }
     }
 
-    // Initialize accounts when the page loads
+    // Function to clear all data from localStorage
+    function clearLocalStorage() {
+      localStorage.clear();  // Clears all data from localStorage
+      console.log("Đã xóa toàn bộ dữ liệu trong localStorage.");
+      loadAccounts();  // Reload the accounts list after clearing data
+    }
+
+    // Initialize by fetching accounts from GitHub when the page loads
     fetchAccountsFromGitHub();
 
     // Listen for account selection change
     document.getElementById("accountSelect").addEventListener("change", (event) => {
-      updateAccountInfo(event.target.value);
+      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+      updateAccountInfo(event.target.value, accounts);
     });
 
     // Copy to clipboard function
