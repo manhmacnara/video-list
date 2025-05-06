@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account OTP Dashboard (Mobile)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,10 +12,10 @@
       background: #f9f9f9;
     }
     textarea, select, button {
-      font-size: 16px;
+      font-size: 14px;
       width: 100%;
-      margin-top: 10px;
-      padding: 10px;
+      margin-top: 8px;
+      padding: 8px;
       box-sizing: border-box;
     }
     button {
@@ -28,10 +29,11 @@
     }
     .copy-btn {
       background-color: #28a745;
-      padding: 6px 12px;
-      font-size: 14px;
+      padding: 4px 8px;
+      font-size: 12px;
       border-radius: 4px;
       flex-shrink: 0;
+      margin-top: 4px;
     }
     .copy-btn:hover {
       background-color: #1e7e34;
@@ -46,7 +48,7 @@
     .info-row {
       display: flex;
       align-items: center;
-      margin-top: 10px;
+      margin-top: 8px;
       flex-wrap: wrap;
     }
     .info-label {
@@ -56,10 +58,11 @@
     }
     .info-value {
       background: #eee;
-      padding: 6px;
+      padding: 4px;
       border-radius: 5px;
       flex-grow: 1;
       word-break: break-word;
+      font-size: 14px;
     }
     @media screen and (max-width: 480px) {
       .info-label {
@@ -80,8 +83,8 @@
   <button onclick="deleteAccounts()">🗑 Xóa toàn bộ tài khoản</button>
   <button onclick="deleteSelectedAccounts()">🗑 Xóa tài khoản đã chọn</button>
 
+  <label for="accountSelect">Chọn tài khoản:</label>
   <select id="accountSelect" multiple></select>
-
 
   <div class="account-box" id="accountInfo" style="display:none">
     <div class="info-row">
