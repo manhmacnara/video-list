@@ -32,7 +32,7 @@ function initClient() {
 
 // Lấy dữ liệu từ Google Sheets API
 function getSheetData() {
-  const spreadsheetId = 'YOUR_SPREADSHEET_ID';  // ID của Google Sheets
+  const spreadsheetId = '1_BG1s7pS5KXRUdAITkANt5YcdDnAwrvWMyE6SU2kWGw';  // ID của Google Sheets
   const range = 'Sheet1!A1:D10';  // Phạm vi dữ liệu bạn muốn lấy
 
   gapi.client.sheets.spreadsheets.values.get({
