@@ -24,7 +24,7 @@ function initClient() {
 
 function getSheetData() {
   const spreadsheetId = '1_BG1s7pS5KXRUdAITkANt5YcdDnAwrvWMyE6SU2kWGw';  // Thay thế bằng Spreadsheet ID của bạn
-  const range = 'Sheet1!A1:D10';
+  const range = 'Sheet1!A1:F18';
 
   gapi.client.sheets.spreadsheets.values.get({
     spreadsheetId: spreadsheetId,
