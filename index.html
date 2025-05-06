@@ -1,60 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Account OTP Dashboard with Firebase</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account OTP Dashboard (Mobile)</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    .account-box { border: 1px solid #ccc; padding: 10px; margin-top: 20px; background: #f9f9f9; border-radius: 5px; }
-    label, textarea, button { margin-top: 10px; width: 100%; }
-    textarea { padding: 8px; font-family: monospace; }
-    button { padding: 10px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #0056b3; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      max-width: 100%;
+      background: #f9f9f9;
+    }
+    textarea, select, button {
+      font-size: 16px;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
     .copy-btn {
-      padding: 5px 10px;
-      font-size: 12px;
-      min-width: 60px;
-      max-width: 60px;
-      white-space: nowrap;
-      background: #28a745;
+      background-color: #28a745;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 4px;
+      flex-shrink: 0;
     }
     .copy-btn:hover {
-      background: #218838;
+      background-color: #1e7e34;
+    }
+    .account-box {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .info-row {
       display: flex;
       align-items: center;
-      gap: 10px;
       margin-top: 10px;
+      flex-wrap: wrap;
     }
     .info-label {
-      width: 80px;
       font-weight: bold;
+      margin-right: 5px;
+      min-width: 70px;
     }
     .info-value {
+      background: #eee;
+      padding: 6px;
+      border-radius: 5px;
       flex-grow: 1;
-      overflow-wrap: anywhere;
-      background: #fff;
-      padding: 5px 8px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+      word-break: break-word;
     }
-    select {
-      margin-top: 10px;
-      padding: 5px;
-      width: 100%;
+    @media screen and (max-width: 480px) {
+      .info-label {
+        width: 100%;
+        margin-bottom: 4px;
+      }
+      .copy-btn {
+        margin-bottom: 6px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Account OTP Dashboard</h1>
+  <h2>Account OTP Dashboard</h2>
 
-  <label for="accountInput">Nhập thông tin tài khoản (username|password|email|passhotmail|refresh_token|client_id), mỗi dòng 1 tài khoản:</label>
-  <textarea id="accountInput" rows="6" placeholder="user|pass|email|..."></textarea>
+  <textarea id="accountInput" rows="6" placeholder="user|pass|email|... mỗi dòng 1 tài khoản"></textarea>
   <button onclick="saveAccounts()">💾 Lưu tài khoản</button>
   <button onclick="deleteAccounts()">🗑 Xóa toàn bộ tài khoản</button>
 
-  <label for="accountSelect">Chọn tài khoản:</label>
   <select id="accountSelect" multiple></select>
   <button onclick="deleteSelectedAccounts()">🗑 Xóa tài khoản đã chọn</button>
 
@@ -68,7 +93,7 @@
     <div class="info-row">
       <button class="copy-btn" onclick="copy('password')">Copy</button>
       <div class="info-label">Password:</div>
-      <div cl="info-value" id="password"></div>
+      <div class="info-value" id="password"></div>
     </div>
     <div class="info-row">
       <button class="copy-btn" onclick="copy('email')">Copy</button>
@@ -104,15 +129,13 @@
     function saveAccounts() {
       const input = document.getElementById("accountInput").value.trim();
       if (!input) return;
-    
-      const lines = input.split("\n").filter(line => line.includes("|"));  // ✅ line được định nghĩa ở đây
+      const lines = input.split("\n").filter(line => line.includes("|"));
       db.ref("accounts").set(lines).then(() => {
-        alert("Đã lưu thành công!");
+        alert("Đã lưu!");
         sessionStorage.setItem("accounts", lines.join("\n"));
         processAccounts(lines.join("\n"));
       });
     }
-
 
     function fetchAccounts() {
       db.ref("accounts").once("value").then(snapshot => {
@@ -126,9 +149,9 @@
     }
 
     function deleteAccounts() {
-      if (!confirm("⚠️ Bạn có chắc muốn xóa toàn bộ tài khoản không?")) return;
+      if (!confirm("Bạn có chắc muốn xóa tất cả?")) return;
       db.ref("accounts").remove().then(() => {
-        alert("Đã xóa toàn bộ tài khoản!");
+        alert("Đã xóa toàn bộ!");
         sessionStorage.removeItem("accounts");
         localStorage.removeItem("accounts");
         document.getElementById("accountSelect").innerHTML = "";
@@ -140,16 +163,15 @@
       const select = document.getElementById("accountSelect");
       const selectedIndexes = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
       if (!selectedIndexes.length) {
-        alert("Hãy chọn tài khoản để xóa!");
+        alert("Chọn tài khoản để xóa!");
         return;
       }
-      if (!confirm("Bạn có chắc muốn xóa tài khoản đã chọn?")) return;
-
+      if (!confirm("Bạn chắc chắn muốn xóa tài khoản đã chọn?")) return;
       db.ref("accounts").once("value").then(snapshot => {
         let list = snapshot.val() || [];
         const newList = list.filter((_, i) => !selectedIndexes.includes(i));
         db.ref("accounts").set(newList).then(() => {
-          alert("Đã xóa tài khoản được chọn!");
+          alert("Đã xóa!");
           sessionStorage.setItem("accounts", newList.join("\n"));
           processAccounts(newList.join("\n"));
         });
