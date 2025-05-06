@@ -56,10 +56,19 @@
 
       try {
         const response = await fetch(fileUrl);
+        
+        // Kiểm tra xem tệp có tồn tại và có thể tải không
+        if (!response.ok) {
+          console.error("Không thể tải tệp từ GitHub.");
+          return;
+        }
+
         const data = await response.text();  // Get the content of the file as text
-        processAccounts(data);
+        console.log("Dữ liệu tệp đã được tải:", data);  // Hiển thị dữ liệu tệp trong console
+
+        processAccounts(data);  // Tiến hành xử lý dữ liệu tài khoản
       } catch (error) {
-        console.error("Error fetching file from GitHub:", error);
+        console.error("Lỗi khi tải tệp từ GitHub:", error);
       }
     }
 
@@ -75,7 +84,10 @@
         return null;
       }).filter(account => account !== null);
 
+      // Lưu vào localStorage
       localStorage.setItem('accounts', JSON.stringify(storedAccounts));
+      console.log(`Đã lưu ${storedAccounts.length} tài khoản vào localStorage.`);  // Log the number of accounts stored
+      
       loadAccounts();  // Update the account list after fetching the accounts
     }
 
@@ -84,6 +96,8 @@
       const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
       const select = document.getElementById("accountSelect");
       select.innerHTML = '';  // Clear previous options
+
+      console.log("Tải danh sách tài khoản từ localStorage:", accounts);  // Log accounts data
 
       accounts.forEach((acc, index) => {
         const option = document.createElement("option");
