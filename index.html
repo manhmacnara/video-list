@@ -3,234 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <title>Account OTP Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .account-box { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-    label, input, button { display: block; margin-top: 10px; }
-    pre { background: #f4f4f4; padding: 10px; }
-    .copy-btn { cursor: pointer; margin-right: 10px; } /* Đặt margin-right để tách các nút */
-    .info-row { display: flex; align-items: center; margin-top: 10px; }
-    .info-row button { margin-right: 10px; } /* Đảm bảo các nút copy được căn sang trái */
-    .info-row span { flex-grow: 1; }
-  </style>
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+  <script src="script1.js"></script> <!-- Đảm bảo tệp script1.js có trong thư mục của bạn -->
 </head>
 <body>
   <h1>Account OTP Dashboard</h1>
 
-  <!-- Input để nhập nhiều tài khoản, mỗi tài khoản cách nhau bằng dấu xuống dòng -->
-  <label for="accountInput">Nhập thông tin tài khoản (username|password|email|passhotmail|refresh_token|client_id), mỗi tài khoản cách nhau bằng dấu xuống dòng:</label>
-  <textarea id="accountInput" rows="5" placeholder="Nhập thông tin tài khoản"></textarea>
-
-  <!-- Nút để thêm tài khoản vào danh sách -->
-  <button onclick="saveAccounts()">Lưu tài khoản</button>
-
-  <!-- Chọn tài khoản từ danh sách -->
-  <label for="accountSelect">Chọn số thứ tự tài khoản:</label>
-  <select id="accountSelect" multiple></select>
-
-  <!-- Nút xóa tài khoản đã chọn -->
-  <button onclick="deleteSelectedAccounts()">Xóa tài khoản đã chọn</button>
-
-  <!-- Hiển thị thông tin tài khoản -->
-  <div class="account-box" id="accountInfo" style="display:none">
-    <strong>Thông tin tài khoản:</strong>
-    <div class="info-row">
-      <button class="copy-btn" onclick="copyToClipboard('user')">Copy</button>
-      <span><b>User:</b> <span id="user"></span></span>
-    </div>
-    <div class="info-row">
-      <button class="copy-btn" onclick="copyToClipboard('password')">Copy</button>
-      <span><b>Password:</b> <span id="password"></span></span>
-    </div>
-    <div class="info-row">
-      <button class="copy-btn" onclick="copyToClipboard('email')">Copy</button>
-      <span><b>Email:</b> <span id="email"></span></span>
-    </div>
-    <div class="info-row">
-      <button class="copy-btn" onclick="copyToClipboard('otp_result')">Copy</button>
-      <span><b>OTP:</b> <span id="otp_result"></span></span>
-    </div>
-    <button onclick="getOtp()">Get OTP</button>
-    <p><b>Thời gian lấy OTP lần cuối:</b> <span id="lastOtpTime"></span></p>
-  </div>
+  <button onclick="handleClientLoad()">Sign In</button> <!-- Nút đăng nhập Google -->
+  <div id="result"></div>  <!-- Hiển thị kết quả từ Google Sheets -->
 
   <script>
-    // Đọc tài khoản từ localStorage và cập nhật danh sách chọn
-    function loadAccounts() {
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-      const select = document.getElementById("accountSelect");
-      select.innerHTML = ''; // Xóa tất cả các lựa chọn cũ
-
-      accounts.forEach((acc, index) => {
-        const option = document.createElement("option");
-        option.value = index;
-        option.textContent = `Tài khoản #${index + 1} (Email: ${acc.email})`;  // Thêm email vào lựa chọn
-        select.appendChild(option);
-      });
-
-      // Nếu có tài khoản, tự động chọn tài khoản đầu tiên
-      if (accounts.length > 0) {
-        select.value = 0;
-        updateAccountInfo(0);  // Cập nhật thông tin tài khoản đầu tiên
-      }
+    // Chạy khi trang được tải
+    function handleClientLoad() {
+      gapi.load('client:auth2', initClient);
     }
 
-    // Lưu nhiều tài khoản vào localStorage
-    function saveAccounts() {
-      const accountString = document.getElementById('accountInput').value;
-      const accountStrings = accountString.split("\n");  // Tách theo dấu xuống dòng
+    function initClient() {
+      gapi.client.init({
+        apiKey: 'YOUR_API_KEY',  // Thay thế bằng API Key của bạn
+        clientId: 'YOUR_CLIENT_ID',  // Thay thế bằng Client ID của bạn
+        discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+        scope: "https://www.googleapis.com/auth/spreadsheets.readonly"  // Quyền truy cập đọc Google Sheets
+      }).then(function() {
+        console.log("Google API Client Initialized");
 
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-
-      accountStrings.forEach(accountString => {
-        const accountFields = accountString.split("|");
-
-        if (accountFields.length === 6) { // Sửa lại số lượng thông tin thành 6 (username|password|email|passhotmail|refresh_token|client_id)
-          const [user, password, email, pass_mail, refresh_token, client_id] = accountFields;
-          // Thêm tài khoản mới vào danh sách
-          accounts.push({ user, password, email, pass_mail, refresh_token, client_id });
+        // Kiểm tra người dùng đã đăng nhập chưa
+        if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+          getSheetData();  // Nếu đã đăng nhập, lấy dữ liệu từ Google Sheets
+        } else {
+          // Nếu chưa đăng nhập, yêu cầu đăng nhập
+          gapi.auth2.getAuthInstance().signIn().then(function() {
+            getSheetData();  // Sau khi đăng nhập, lấy dữ liệu
+          });
         }
       });
-
-      // Lưu lại vào localStorage
-      localStorage.setItem('accounts', JSON.stringify(accounts));
-
-      // Cập nhật lại danh sách chọn tài khoản
-      loadAccounts();
-
-      // Clear input field after saving
-      document.getElementById('accountInput').value = '';
     }
 
-    // Cập nhật thông tin tài khoản khi chọn từ danh sách
-    function updateAccountInfo(index) {
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-      const account = accounts[index];
+    // Lấy dữ liệu từ Google Sheets API
+    function getSheetData() {
+      const spreadsheetId = 'YOUR_SPREADSHEET_ID';  // Thay thế bằng Spreadsheet ID của bạn
+      const range = 'Sheet1!A1:D10';  // Phạm vi dữ liệu bạn muốn lấy
 
-      if (account) {
-        document.getElementById("user").textContent = account.user;
-        document.getElementById("password").textContent = account.password;
-        document.getElementById("email").textContent = account.email;
-        document.getElementById("accountInfo").style.display = "block";
-
-        // Lưu tài khoản đã chọn vào biến toàn cục
-        window.currentAccount = account;
-        displayLastOtpTime(account.email);  // Hiển thị thời gian OTP cho từng tài khoản riêng biệt
-      } else {
-        document.getElementById("accountInfo").style.display = "none";
-      }
-    }
-
-    // Xóa tài khoản đã chọn từ danh sách
-    function deleteSelectedAccounts() {
-      const select = document.getElementById("accountSelect");
-      const selectedIndices = Array.from(select.selectedOptions).map(option => option.value);
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-
-      // Xóa các tài khoản được chọn
-      selectedIndices.forEach(index => {
-        accounts.splice(index, 1);
+      gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: spreadsheetId,
+        range: range,
+      }).then(function(response) {
+        const result = response.result.values;
+        console.log('Dữ liệu từ Google Sheets:', result);
+        document.getElementById('result').innerHTML = JSON.stringify(result); // Hiển thị dữ liệu lên trang
+      }, function(response) {
+        console.log('Lỗi khi lấy dữ liệu:', response.result.error);
       });
-
-      // Lưu lại danh sách tài khoản sau khi xóa
-      localStorage.setItem('accounts', JSON.stringify(accounts));
-
-      // Cập nhật lại danh sách chọn tài khoản
-      loadAccounts();
-      document.getElementById("accountInfo").style.display = "none";  // Ẩn thông tin tài khoản sau khi xóa
     }
-
-    // Hiển thị thời gian đã lấy OTP lần cuối cho tài khoản cụ thể
-    function displayLastOtpTime(email) {
-      const lastOtpTime = localStorage.getItem(`lastOtpTime_${email}`);  // Lưu theo email của tài khoản
-      const timeElement = document.getElementById("lastOtpTime");
-
-      if (lastOtpTime) {
-        const timeDiff = getTimeDifference(new Date(lastOtpTime));
-        timeElement.textContent = `Lần lấy OTP gần nhất: ${timeDiff}`;
-      } else {
-        timeElement.textContent = "Chưa có thông tin OTP.";
-      }
-    }
-
-    // Tính toán thời gian đã trôi qua từ lần lấy OTP gần nhất
-    function getTimeDifference(lastOtpDate) {
-      const now = new Date();
-      const diffInSeconds = Math.floor((now - lastOtpDate) / 1000);
-      const diffInMinutes = Math.floor(diffInSeconds / 60);
-      const diffInHours = Math.floor(diffInMinutes / 60);
-      const diffInDays = Math.floor(diffInHours / 24);
-
-      if (diffInDays > 0) {
-        return `${diffInDays} ngày trước`;
-      } else if (diffInHours > 0) {
-        return `${diffInHours} giờ trước`;
-      } else if (diffInMinutes > 0) {
-        return `${diffInMinutes} phút trước`;
-      } else {
-        return `${diffInSeconds} giây trước`;
-      }
-    }
-
-    // Gửi yêu cầu OTP
-    async function getOtp() {
-      const acc = window.currentAccount;
-
-      const payload = {
-        type: "tiktok",
-        email: acc.email,
-        refresh_token: acc.refresh_token,
-        client_id: acc.client_id
-      };
-
-      // In ra thông tin gửi đi API để kiểm tra
-      console.log("Dữ liệu gửi đi API: ", JSON.stringify(payload));
-
-      try {
-        const response = await fetch("https://tool.unlimitmail.com/api/get_code_oauth2", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        
-        // In ra kết quả phản hồi từ API
-        console.log("Kết quả API: ", result);
-
-        document.getElementById("otp_result").textContent = result.code || "Không nhận được OTP";
-
-        // Lưu thời gian lấy OTP vào localStorage riêng cho từng tài khoản (dựa trên email)
-        localStorage.setItem(`lastOtpTime_${acc.email}`, new Date().toISOString());
-
-        // Cập nhật lại thời gian lấy OTP lần cuối
-        displayLastOtpTime(acc.email);
-      } catch (err) {
-        document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
-        console.error("Lỗi khi gọi API: ", err);
-      }
-    }
-
-    // Tải danh sách tài khoản khi trang được tải
-    loadAccounts();
-
-    // Lắng nghe sự kiện chọn tài khoản từ danh sách
-    document.getElementById("accountSelect").addEventListener("change", (event) => {
-      updateAccountInfo(event.target.value);
-    });
-
-    // Hàm copy vào clipboard
-    function copyToClipboard(elementId) {
-      const textToCopy = document.getElementById(elementId).textContent;
-      const textarea = document.createElement("textarea");
-      textarea.value = textToCopy;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-    }
-  <script src="script1.js"></script>
+  </script>
 </body>
 </html>
