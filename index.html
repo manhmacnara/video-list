@@ -104,14 +104,15 @@
     function saveAccounts() {
       const input = document.getElementById("accountInput").value.trim();
       if (!input) return;
-
-      const lines = input.split("\n").filter(lin => line.includes("|"));
+    
+      const lines = input.split("\n").filter(line => line.includes("|"));  // ✅ line được định nghĩa ở đây
       db.ref("accounts").set(lines).then(() => {
         alert("Đã lưu thành công!");
         sessionStorage.setItem("accounts", lines.join("\n"));
         processAccounts(lines.join("\n"));
       });
     }
+
 
     function fetchAccounts() {
       db.ref("accounts").once("value").then(snapshot => {
