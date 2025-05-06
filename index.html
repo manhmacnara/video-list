@@ -55,20 +55,29 @@
   <script>
     // Fetch account information from GitHub
     async function fetchAccountsFromGitHub() {
-      coconst fileUrl = `https://raw.githubusercontent.com/manhmacnara/video-list/main/acc.txt?${new Date().getTime()}`; // Raw URL to the acc.txt file
-
+      const fileUrl = `https://raw.githubusercontent.com/manhmacnara/video-list/main/acc.txt?${new Date().getTime()}`;
+    
+      // Kiểm tra xem đã tải tệp trước đó chưa
+      if (sessionStorage.getItem('accounts')) {
+        console.log("Tải dữ liệu từ sessionStorage");
+        processAccounts(sessionStorage.getItem('accounts'));  // Xử lý từ sessionStorage
+        return;
+      }
+    
       try {
         const response = await fetch(fileUrl);
-        
-        // Kiểm tra nếu phản hồi không thành công
+    
         if (!response.ok) {
           console.error("Không thể tải tệp từ GitHub. Status: " + response.status);
           return;
         }
-
-        const data = await response.text();  // Get the content of the file as text
-        console.log("Dữ liệu tệp đã được tải:", data);  // Hiển thị dữ liệu tệp trong console
-
+    
+        const data = await response.text();  // Lấy nội dung của tệp dưới dạng văn bản
+        console.log("Dữ liệu tệp đã được tải:", data);
+    
+        // Lưu dữ liệu vào sessionStorage
+        sessionStorage.setItem('accounts', data);
+    
         processAccounts(data);  // Tiến hành xử lý dữ liệu tài khoản
       } catch (error) {
         console.error("Lỗi khi tải tệp từ GitHub:", error);
