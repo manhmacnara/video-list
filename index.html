@@ -2,13 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Account OTP Dashboard</title>
+  <title>Account OTP Dashboard with Firebase</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     .account-box { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-    label, input, button { display: block; margin-top: 10px; }
-    pre { background: #f4f4f4; padding: 10px; }
-    .copy-btn { cursor: pointer; margin-right: 10px; }
+    label, textarea, button { display: block; margin-top: 10px; width: 100%; }
     .info-row { display: flex; align-items: center; margin-top: 10px; }
     .info-row button { margin-right: 10px; }
     .info-row span { flex-grow: 1; }
@@ -17,217 +15,141 @@
 <body>
   <h1>Account OTP Dashboard</h1>
 
-  <label for="accountInput">Nhập thông tin tài khoản (username|password|email|passhotmail|refresh_token|client_id), mỗi tài khoản cách nhau bằng dấu xuống dòng:</label>
-  <textarea id="accountInput" rows="5" placeholder="Nhập thông tin tài khoản"></textarea>
-
+  <label for="accountInput">Nhập thông tin tài khoản (username|password|email|passhotmail|refresh_token|client_id), mỗi dòng 1 tài khoản:</label>
+  <textarea id="accountInput" rows="6" placeholder="user|pass|email|..."></textarea>
   <button onclick="saveAccounts()">Lưu tài khoản</button>
 
-  <label for="accountSelect">Chọn số thứ tự tài khoản:</label>
+  <label for="accountSelect">Chọn tài khoản:</label>
   <select id="accountSelect" multiple></select>
-
   <button onclick="deleteSelectedAccounts()">Xóa tài khoản đã chọn</button>
 
   <div class="account-box" id="accountInfo" style="display:none">
     <strong>Thông tin tài khoản:</strong>
-    <div class="info-row">
-      <button class="copy-btn" onclick="copyToClipboard('user')">Copy</button>
-      <span><b>User:</b> <span id="user"></span></span>
-    </div>
-    <div class="info-row">
-      <button class="copy-btn" onclick="copyToClipboard('password')">Copy</button>
-      <span><b>Password:</b> <span id="password"></span></span>
-    </div>
-    <div class="info-row">
-      <button class="copy-btn" onclick="copyToClipboard('email')">Copy</button>
-      <span><b>Email:</b> <span id="email"></span></span>
-    </div>
-    <div class="info-row">
-      <button class="copy-btn" onclick="copyToClipboard('otp_result')">Copy</button>
-      <span><b>OTP:</b> <span id="otp_result"></span></span>
-    </div>
-    <button onclick="getOtp()">Get OTP</button>
-    <p><b>Thời gian lấy OTP lần cuối:</b> <span id="lastOtpTime"></span></p>
+    <div class="info-row"><button onclick="copy('user')">Copy</button><span><b>User:</b> <span id="user"></span></span></div>
+    <div class="info-row"><button onclick="copy('password')">Copy</button><span><b>Password:</b> <span id="password"></span></span></div>
+    <div class="info-row"><button onclick="copy('email')">Copy</button><span><b>Email:</b> <span id="email"></span></span></div>
+    <div class="info-row"><button onclick="copy('otp_result')">Copy</button><span><b>OTP:</b> <span id="otp_result"></span></span></div>
+    <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime"></span></p>
+    <button onclick="getOtp()">Lấy OTP</button>
   </div>
 
-  <!-- Nút xóa dữ liệu trong localStorage -->
-  <button onclick="clearLocalStorage()">Xóa dữ liệu khỏi localStorage</button>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
-    // Fetch account information from GitHub
-    async function fetchAccountsFromGitHub() {
-      const fileUrl = `https://raw.githubusercontent.com/manhmacnara/video-list/main/acc.txt?${new Date().getTime()}`;
-    
-      // Kiểm tra xem đã tải tệp trước đó chưa
-      if (sessionStorage.getItem('accounts')) {
-        console.log("Tải dữ liệu từ sessionStorage");
-        processAccounts(sessionStorage.getItem('accounts'));  // Xử lý từ sessionStorage
+    // Thay đoạn này bằng config Firebase của bạn (từ ảnh bạn gửi)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAlmrhQkbhMXctil8crZ6GftfH9wAcKA",
+      authDomain: "acctiktok-34c22.firebaseapp.com",
+      databaseURL: "https://acctiktok-34c22-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "acctiktok-34c22",
+      storageBucket: "acctiktok-34c22.appspot.com",
+      messagingSenderId: "788776632508",
+      appId: "1:788776632508:web:c94467809ce41f68027ceb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Tải dữ liệu từ Firebase
+    function fetchAccounts() {
+      const cached = sessionStorage.getItem('accounts');
+      if (cached) {
+        processAccounts(cached);
         return;
       }
-    
-      try {
-        const response = await fetch(fileUrl);
-    
-        if (!response.ok) {
-          console.error("Không thể tải tệp từ GitHub. Status: " + response.status);
-          return;
+
+      db.ref("accounts").once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          sessionStorage.setItem("accounts", data);
+          processAccounts(data);
         }
-    
-        const data = await response.text();  // Lấy nội dung của tệp dưới dạng văn bản
-        console.log("Dữ liệu tệp đã được tải:", data);
-    
-        // Lưu dữ liệu vào sessionStorage
-        sessionStorage.setItem('accounts', data);
-    
-        processAccounts(data);  // Tiến hành xử lý dữ liệu tài khoản
-      } catch (error) {
-        console.error("Lỗi khi tải tệp từ GitHub:", error);
-      }
+      });
     }
 
-    // Process and store account data from GitHub
+    function saveAccounts() {
+      const input = document.getElementById("accountInput").value.trim();
+      if (!input) return;
+      db.ref("accounts").set(input).then(() => {
+        alert("Đã lưu thành công");
+        sessionStorage.setItem("accounts", input);
+        processAccounts(input);
+      });
+    }
+
     function processAccounts(accountData) {
-      const accounts = accountData.split("\n");  // Split the data by new line to get each account
-      const storedAccounts = accounts.map(account => {
-        const fields = account.split("|");  // Split each account string by pipe '|'
-        if (fields.length === 6) {  // Ensure there are 6 fields (user, password, email, passhotmail, refresh_token, client_id)
-          const [user, password, email, pass_mail, refresh_token, client_id] = fields;
-          return { user, password, email, pass_mail, refresh_token, client_id };
-        }
-        return null;
-      }).filter(account => account !== null);
-
-      // Lưu vào localStorage
-      localStorage.setItem('accounts', JSON.stringify(storedAccounts));
-      console.log(`Đã lưu ${storedAccounts.length} tài khoản vào localStorage.`);  // Log the number of accounts stored
+      const accounts = accountData.split("\n").map(line => {
+        const [user, password, email, pass_mail, refresh_token, client_id] = line.split("|");
+        return { user, password, email, pass_mail, refresh_token, client_id };
+      }).filter(acc => acc.email);
       
-      loadAccounts();  // Update the account list after fetching the accounts
+      localStorage.setItem("accounts", JSON.stringify(accounts));
+      loadAccounts();
     }
 
-    // Load accounts from localStorage and update the account select list
     function loadAccounts() {
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+      const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
       const select = document.getElementById("accountSelect");
-      select.innerHTML = '';  // Clear previous options
-
-      accounts.forEach((acc, index) => {
+      select.innerHTML = "";
+      accounts.forEach((acc, idx) => {
         const option = document.createElement("option");
-        option.value = index;
-        option.textContent = `Tài khoản #${index + 1} (Email: ${acc.email})`;
+        option.value = idx;
+        option.textContent = `#${idx + 1} - ${acc.email}`;
         select.appendChild(option);
       });
-
-      if (accounts.length > 0) {
-        select.value = 0;
-        updateAccountInfo(0);  // Update account info for the first account
-      }
+      if (accounts.length) updateAccountInfo(0);
     }
 
-    // Update account info when selected from the list
     function updateAccountInfo(index) {
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-      const account = accounts[index];
-
-      if (account) {
-        document.getElementById("user").textContent = account.user;
-        document.getElementById("password").textContent = account.password;
-        document.getElementById("email").textContent = account.email;
-        document.getElementById("accountInfo").style.display = "block";
-
-        window.currentAccount = account;
-        displayLastOtpTime(account.email);
-      } else {
-        document.getElementById("accountInfo").style.display = "none";
-      }
+      const accounts = JSON.parse(localStorage.getItem("accounts"));
+      const acc = accounts[index];
+      if (!acc) return;
+      document.getElementById("user").textContent = acc.user;
+      document.getElementById("password").textContent = acc.password;
+      document.getElementById("email").textContent = acc.email;
+      document.getElementById("accountInfo").style.display = "block";
+      window.currentAccount = acc;
     }
 
-    // Display last OTP time for the selected account
-    function displayLastOtpTime(email) {
-      const lastOtpTime = localStorage.getItem(`lastOtpTime_${email}`);
-      const timeElement = document.getElementById("lastOtpTime");
-
-      if (lastOtpTime) {
-        const timeDiff = getTimeDifference(new Date(lastOtpTime));
-        timeElement.textContent = `Lần lấy OTP gần nhất: ${timeDiff}`;
-      } else {
-        timeElement.textContent = "Chưa có thông tin OTP.";
-      }
-    }
-
-    // Calculate the time difference from the last OTP fetch
-    function getTimeDifference(lastOtpDate) {
-      const now = new Date();
-      const diffInSeconds = Math.floor((now - lastOtpDate) / 1000);
-      const diffInMinutes = Math.floor(diffInSeconds / 60);
-      const diffInHours = Math.floor(diffInMinutes / 60);
-      const diffInDays = Math.floor(diffInHours / 24);
-
-      if (diffInDays > 0) {
-        return `${diffInDays} ngày trước`;
-      } else if (diffInHours > 0) {
-        return `${diffInHours} giờ trước`;
-      } else if (diffInMinutes > 0) {
-        return `${diffInMinutes} phút trước`;
-      } else {
-        return `${diffInSeconds} giây trước`;
-      }
-    }
-
-    // Fetch OTP
-    async function getOtp() {
+    function getOtp() {
       const acc = window.currentAccount;
-
-      const payload = {
-        type: "tiktok",
-        email: acc.email,
-        refresh_token: acc.refresh_token,
-        client_id: acc.client_id
-      };
-
-      try {
-        const response = await fetch("https://tool.unlimitmail.com/api/get_code_oauth2", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
+      if (!acc) return;
+      fetch("https://tool.unlimitmail.com/api/get_code_oauth2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "tiktok",
+          email: acc.email,
+          refresh_token: acc.refresh_token,
+          client_id: acc.client_id
+        })
+      })
+      .then(res => res.json())
+      .then(result => {
         document.getElementById("otp_result").textContent = result.code || "Không nhận được OTP";
         localStorage.setItem(`lastOtpTime_${acc.email}`, new Date().toISOString());
-        displayLastOtpTime(acc.email);
-      } catch (err) {
+      })
+      .catch(() => {
         document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
-        console.error("Lỗi khi gọi API: ", err);
-      }
+      });
     }
 
-    // Function to clear all data from localStorage
-    function clearLocalStorage() {
-      localStorage.clear();  // Clears all data from localStorage
-      console.log("Đã xóa toàn bộ dữ liệu trong localStorage.");
-      loadAccounts();  // Reload the accounts list after clearing data
-    }
-
-    // Initialize by fetching accounts from GitHub when the page loads
-    fetchAccountsFromGitHub();
-
-    // Listen for account selection change
-    document.getElementById("accountSelect").addEventListener("change", (event) => {
-      const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-      updateAccountInfo(event.target.value, accounts);
-    });
-
-    // Copy to clipboard function
-    function copyToClipboard(elementId) {
-      const textToCopy = document.getElementById(elementId).textContent;
+    function copy(id) {
+      const text = document.getElementById(id).textContent;
       const textarea = document.createElement("textarea");
-      textarea.value = textToCopy;
+      textarea.value = text;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
     }
+
+    document.getElementById("accountSelect").addEventListener("change", e => {
+      updateAccountInfo(e.target.value);
+    });
+
+    fetchAccounts(); // gọi khi mở trang
   </script>
 </body>
 </html>
