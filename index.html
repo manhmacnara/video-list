@@ -218,6 +218,24 @@
       document.getElementById("email").textContent = acc.email;
       document.getElementById("accountInfo").style.display = "block";
       window.currentAccount = acc;
+
+      // Hiển thị thời gian lần OTP gần nhất
+      displayLastOtpTime(acc.email);
+    }
+
+    function displayLastOtpTime(email) {
+      const timeElement = document.getElementById("lastOtpTime");
+
+      // Lấy thời gian từ Firebase
+      db.ref(`accounts/${email}`).once("value").then(snapshot => {
+        const accountData = snapshot.val();
+        if (accountData && accountData.lastOtpTime) {
+          const lastOtpTime = accountData.lastOtpTime;
+          timeElement.textContent = `Lần lấy OTP gần nhất: ${new Date(lastOtpTime).toLocaleString()}`;
+        } else {
+          timeElement.textContent = "Chưa có thông tin OTP.";
+        }
+      });
     }
 
     function getOtp() {
@@ -236,7 +254,16 @@
       .then(res => res.json())
       .then(result => {
         document.getElementById("otp_result").textContent = result.code || "Không nhận được OTP";
-        localStorage.setItem(`lastOtpTime_${acc.email}`, new Date().toISOString());
+        
+        // Lưu thời gian và OTP vào Firebase
+        const timestamp = new Date().toISOString();
+        db.ref(`accounts/${acc.email}`).update({
+          lastOtpTime: timestamp,
+          otpCode: result.code || "Không nhận được OTP"
+        });
+
+        localStorage.setItem(`lastOtpTime_${acc.email}`, timestamp);
+        displayLastOtpTime(acc.email);
       })
       .catch(() => {
         document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
