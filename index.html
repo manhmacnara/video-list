@@ -4,12 +4,46 @@
   <meta charset="UTF-8">
   <title>Account OTP Dashboard with Firebase</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .account-box { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-    label, textarea, button { display: block; margin-top: 10px; width: 100%; }
-    .info-row { display: flex; align-items: center; margin-top: 10px; }
-    .info-row button { margin-right: 10px; }
-    .info-row span { flex-grow: 1; }
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    .account-box { border: 1px solid #ccc; padding: 10px; margin-top: 20px; background: #f9f9f9; border-radius: 5px; }
+    label, textarea, button { margin-top: 10px; width: 100%; }
+    textarea { padding: 8px; font-family: monospace; }
+    button { padding: 10px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .copy-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+      min-width: 60px;
+      max-width: 60px;
+      white-space: nowrap;
+      background: #28a745;
+    }
+    .copy-btn:hover {
+      background: #218838;
+    }
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .info-label {
+      width: 80px;
+      font-weight: bold;
+    }
+    .info-value {
+      flex-grow: 1;
+      overflow-wrap: anywhere;
+      background: #fff;
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    select {
+      margin-top: 10px;
+      padding: 5px;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -26,12 +60,28 @@
 
   <div class="account-box" id="accountInfo" style="display:none">
     <strong>Thông tin tài khoản:</strong>
-    <div class="info-row"><button onclick="copy('user')">Copy</button><span><b>User:</b> <span id="user"></span></span></div>
-    <div class="info-row"><button onclick="copy('password')">Copy</button><span><b>Password:</b> <span id="password"></span></span></div>
-    <div class="info-row"><button onclick="copy('email')">Copy</button><span><b>Email:</b> <span id="email"></span></span></div>
-    <div class="info-row"><button onclick="copy('otp_result')">Copy</button><span><b>OTP:</b> <span id="otp_result"></span></span></div>
+    <div class="info-row">
+      <button class="copy-btn" onclick="copy('user')">Copy</button>
+      <div class="info-label">User:</div>
+      <div class="info-value" id="user"></div>
+    </div>
+    <div class="info-row">
+      <button class="copy-btn" onclick="copy('password')">Copy</button>
+      <div class="info-label">Password:</div>
+      <div class="info-value" id="password"></div>
+    </div>
+    <div class="info-row">
+      <button class="copy-btn" onclick="copy('email')">Copy</button>
+      <div class="info-label">Email:</div>
+      <div class="info-value" id="email"></div>
+    </div>
+    <div class="info-row">
+      <button class="copy-btn" onclick="copy('otp_result')">Copy</button>
+      <div class="info-label">OTP:</div>
+      <div class="info-value" id="otp_result"></div>
+    </div>
     <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime"></span></p>
-    <button onclick="getOtp()">Lấy OTP</button>
+    <button onclick="getOtp()">📩 Lấy OTP</button>
   </div>
 
   <!-- Firebase SDK -->
