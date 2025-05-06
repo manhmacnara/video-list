@@ -57,9 +57,9 @@
       try {
         const response = await fetch(fileUrl);
         
-        // Kiểm tra xem tệp có tồn tại và có thể tải không
+        // Kiểm tra nếu phản hồi không thành công
         if (!response.ok) {
-          console.error("Không thể tải tệp từ GitHub.");
+          console.error("Không thể tải tệp từ GitHub. Status: " + response.status);
           return;
         }
 
