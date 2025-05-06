@@ -129,11 +129,18 @@
     function saveAccounts() {
       const input = document.getElementById("accountInput").value.trim();
       if (!input) return;
-      const lines = input.split("\n").filter(line => line.includes("|"));
-      db.ref("accounts").set(lines).then(() => {
-        alert("Đã lưu!");
-        sessionStorage.setItem("accounts", lines.join("\n"));
-        processAccounts(lines.join("\n"));
+    
+      const newLines = input.split("\n").filter(line => line.includes("|"));
+    
+      db.ref("accounts").once("value").then(snapshot => {
+        const currentList = snapshot.val() || [];
+        const updatedList = currentList.concat(newLines);  // nối thêm dòng mới
+        db.ref("accounts").set(updatedList).then(() => {
+          alert("Đã thêm tài khoản!");
+          sessionStorage.setItem("accounts", updatedList.join("\n"));
+          processAccounts(updatedList.join("\n"));
+          document.getElementById("accountInput").value = ""; // Xoá ô nhập sau khi lưu
+        });
       });
     }
 
