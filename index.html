@@ -265,7 +265,6 @@
       });
     }
 
-    // Get OTP
 // Get OTP
     function getOtp() {
       const acc = window.currentAccount;
@@ -289,19 +288,19 @@
       .then(result => {
         document.getElementById("otp_result").textContent = result.code || "Không nhận được OTP";
         
-        // Lưu thời gian và OTP vào Firebase
+        // Chỉ cập nhật thời gian và OTP vào Firebase mà không làm thay đổi thông tin tài khoản
         const timestamp = new Date().toISOString();
         db.ref(`accounts/${sanitizedEmail}`).update({
-          lastOtpTime: timestamp,
-          otpCode: result.code || "Không nhận được OTP"
+          lastOtpTime: timestamp,  // Chỉ cập nhật thời gian
+          otpCode: result.code || "Không nhận được OTP" // Chỉ cập nhật OTP
         });
     
         // Cập nhật thông tin vào localStorage
         localStorage.setItem(`lastOtpTime_${sanitizedEmail}`, timestamp);
         displayLastOtpTime(sanitizedEmail);
     
-        // Cập nhật lại danh sách tài khoản từ Firebase và localStorage
-        loadAccounts();  // Giữ lại mục chọn tài khoản sau khi lấy OTP
+        // Giữ lại mục chọn tài khoản sau khi lấy OTP
+        loadAccounts();  // Giữ lại các tài khoản trong dropdown
       })
       .catch(() => {
         document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
@@ -309,7 +308,7 @@
     }
 
 
-    // Load accounts into the selection dropdown
+
 // Load accounts into the selection dropdown
     function loadAccounts() {
       const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
@@ -328,6 +327,7 @@
         updateAccountInfo(0);  // Cập nhật thông tin tài khoản được chọn
       }
     }
+
 
 
     // Copy text to clipboard
