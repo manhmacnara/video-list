@@ -162,7 +162,6 @@
       });
     }
 
-
     // Fetch accounts from Firebase
     function fetchAccounts() {
       db.ref("accounts").once("value").then(snapshot => {
@@ -253,8 +252,8 @@
     function displayLastOtpTime(sanitizedEmail) {
       const timeElement = document.getElementById("lastOtpTime");
 
-      // Lấy thời gian từ Firebase
-      db.ref(`accounts/${sanitizedEmail}`).once("value").then(snapshot => {
+      // Lấy thời gian từ node otpTimestamps trong Firebase
+      db.ref(`otpTimestamps/${sanitizedEmail}`).once("value").then(snapshot => {
         const accountData = snapshot.val();
         if (accountData && accountData.lastOtpTime) {
           const lastOtpTime = accountData.lastOtpTime;
@@ -265,7 +264,7 @@
       });
     }
 
-// Get OTP
+    // Get OTP
     function getOtp() {
       const acc = window.currentAccount;
       if (!acc) return;
@@ -290,7 +289,7 @@
         
         // Chỉ cập nhật thời gian và OTP vào Firebase mà không làm thay đổi thông tin tài khoản
         const timestamp = new Date().toISOString();
-        db.ref(`accounts/${sanitizedEmail}`).update({
+        db.ref(`otpTimestamps/${sanitizedEmail}`).update({
           lastOtpTime: timestamp,  // Chỉ cập nhật thời gian
           otpCode: result.code || "Không nhận được OTP" // Chỉ cập nhật OTP
         });
@@ -306,29 +305,6 @@
         document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
       });
     }
-
-
-
-// Load accounts into the selection dropdown
-    function loadAccounts() {
-      const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
-      const select = document.getElementById("accountSelect");
-      select.innerHTML = "";  // Làm sạch mục chọn tài khoản trước khi cập nhật lại
-    
-      accounts.forEach((acc, idx) => {
-        const option = document.createElement("option");
-        option.value = idx;
-        option.textContent = `#${idx + 1} - ${acc.email}`;
-        select.appendChild(option);
-      });
-    
-      // Hiển thị thông tin tài khoản đầu tiên trong danh sách (nếu có)
-      if (accounts.length) {
-        updateAccountInfo(0);  // Cập nhật thông tin tài khoản được chọn
-      }
-    }
-
-
 
     // Copy text to clipboard
     function copy(id) {
