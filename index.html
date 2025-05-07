@@ -142,12 +142,14 @@
       const newLines = input.split("\n").filter(line => line.includes("|"));
         
       db.ref("accounts").once("value").then(snapshot => {
-        let currentList = snapshot.val() || [];
-        // Đảm bảo currentList là mảng
+        // Lấy dữ liệu hiện tại từ Firebase
+        let currentList = snapshot.val();
+        
+        // Kiểm tra nếu currentList không phải là mảng, gán nó thành mảng rỗng
         if (!Array.isArray(currentList)) {
           currentList = [];
         }
-    
+        
         // Nối mảng mới vào mảng hiện tại
         const updatedList = currentList.concat(newLines);
     
