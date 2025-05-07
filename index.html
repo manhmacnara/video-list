@@ -292,7 +292,7 @@
         // Lưu thời gian và OTP vào Firebase
         const timestamp = new Date().toISOString();
         db.ref(`accounts/${sanitizedEmail}`).update({
-          lastOtpTime: timestamp,
+          lastOtpTime: timestamp,  // Chỉ cập nhật thời gian và OTP, không xóa dữ liệu khác
           otpCode: result.code || "Không nhận được OTP"
         });
     
@@ -300,14 +300,14 @@
         localStorage.setItem(`lastOtpTime_${sanitizedEmail}`, timestamp);
         displayLastOtpTime(sanitizedEmail);
     
-        // Cập nhật lại danh sách tài khoản trong dropdown
-        loadAccounts();  // Giữ lại mục chọn tài khoản sau khi lấy OTP
+        // Giữ lại mục chọn tài khoản sau khi lấy OTP
+        loadAccounts();  // Giữ lại các tài khoản trong dropdown
       })
       .catch(() => {
         document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
       });
     }
-    
+
     // Load accounts into the selection dropdown
     function loadAccounts() {
       const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
