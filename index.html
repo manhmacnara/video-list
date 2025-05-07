@@ -138,12 +138,19 @@
     function saveAccounts() {
       const input = document.getElementById("accountInput").value.trim();
       if (!input) return;
-    
+        
       const newLines = input.split("\n").filter(line => line.includes("|"));
-    
+        
       db.ref("accounts").once("value").then(snapshot => {
-        const currentList = snapshot.val() || [];
-        const updatedList = currentList.concat(newLines);  // nối thêm dòng mới
+        let currentList = snapshot.val() || [];
+        // Đảm bảo currentList là mảng
+        if (!Array.isArray(currentList)) {
+          currentList = [];
+        }
+    
+        // Nối mảng mới vào mảng hiện tại
+        const updatedList = currentList.concat(newLines);
+    
         db.ref("accounts").set(updatedList).then(() => {
           alert("Đã thêm tài khoản!");
           sessionStorage.setItem("accounts", updatedList.join("\n"));
@@ -152,6 +159,7 @@
         });
       });
     }
+
 
     // Fetch accounts from Firebase
     function fetchAccounts() {
