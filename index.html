@@ -221,13 +221,22 @@
       const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
       const select = document.getElementById("accountSelect");
       select.innerHTML = "";
+      
+      const selectedIndex = select.selectedIndex; // Lưu vị trí tài khoản đã chọn
+
       accounts.forEach((acc, idx) => {
         const option = document.createElement("option");
         option.value = idx;
         option.textContent = `#${idx + 1} - ${acc.email}`;
         select.appendChild(option);
       });
-      if (accounts.length) updateAccountInfo(0);
+
+      if (accounts.length && selectedIndex !== -1 && selectedIndex < accounts.length) {
+        select.selectedIndex = selectedIndex; // Đặt lại chỉ số tài khoản đã chọn
+        updateAccountInfo(selectedIndex);
+      } else if (accounts.length) {
+        updateAccountInfo(0);
+      }
     }
 
     // Update account info when selected
@@ -298,7 +307,7 @@
         localStorage.setItem(`lastOtpTime_${sanitizedEmail}`, timestamp);
         displayLastOtpTime(sanitizedEmail);
     
-        // Giữ lại mục chọn tài khoản sau khi lấy OTP
+        // Giữ lại tài khoản đã chọn sau khi lấy OTP
         loadAccounts();  // Giữ lại các tài khoản trong dropdown
       })
       .catch(() => {
