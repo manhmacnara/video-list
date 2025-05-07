@@ -221,8 +221,9 @@
       const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
       const select = document.getElementById("accountSelect");
       select.innerHTML = "";
-      
-      const selectedIndex = select.selectedIndex; // Lưu vị trí tài khoản đã chọn
+
+      // Lấy chỉ số tài khoản đã chọn trước đó
+      const selectedIndex = localStorage.getItem("selectedIndex") || 0; 
 
       accounts.forEach((acc, idx) => {
         const option = document.createElement("option");
@@ -231,12 +232,9 @@
         select.appendChild(option);
       });
 
-      if (accounts.length && selectedIndex !== -1 && selectedIndex < accounts.length) {
-        select.selectedIndex = selectedIndex; // Đặt lại chỉ số tài khoản đã chọn
-        updateAccountInfo(selectedIndex);
-      } else if (accounts.length) {
-        updateAccountInfo(0);
-      }
+      // Đặt lại tài khoản đã chọn
+      select.selectedIndex = selectedIndex;  // Lấy lại chỉ số tài khoản đã chọn
+      updateAccountInfo(selectedIndex); // Hiển thị thông tin tài khoản đã chọn
     }
 
     // Update account info when selected
@@ -252,6 +250,9 @@
       document.getElementById("email").textContent = acc.email;
       document.getElementById("accountInfo").style.display = "block";
       window.currentAccount = acc;
+
+      // Lưu lại chỉ số tài khoản đã chọn
+      localStorage.setItem("selectedIndex", index);
 
       // Hiển thị thời gian lần OTP gần nhất
       displayLastOtpTime(sanitizedEmail);
