@@ -266,38 +266,59 @@
     }
 
     // Get OTP
-    function getOtp() {
-      const acc = window.currentAccount;
-      if (!acc) return;
-      fetch("https://tool.unlimitmail.com/api/get_code_oauth2", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "tiktok",
-          email: acc.email,
-          refresh_token: acc.refresh_token,
-          client_id: acc.client_id
-        })
+  function getOtp() {
+    const acc = window.currentAccount;
+    if (!acc) return;
+    
+    // Lưu trữ email đã được chuẩn hóa để sử dụng trong Firebase
+    const sanitizedEmail = sanitizeEmail(acc.email);
+    
+    // Gửi yêu cầu lấy OTP từ API
+    fetch("https://tool.unlimitmail.com/api/get_code_oauth2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "tiktok",
+        email: acc.email,
+        refresh_token: acc.refresh_token,
+        client_id: acc.client_id
       })
-      .then(res => res.json())
-      .then(result => {
-        document.getElementById("otp_result").textContent = result.code || "Không nhận được OTP";
-        
-        // Lưu thời gian và OTP vào Firebase
-        const timestamp = new Date().toISOString();
-        const sanitizedEmail = sanitizeEmail(acc.email);
-        db.ref(`accounts/${sanitizedEmail}`).update({
-          lastOtpTime: timestamp,
-          otpCode: result.code || "Không nhận được OTP"
-        });
-
-        localStorage.setItem(`lastOtpTime_${sanitizedEmail}`, timestamp);
-        displayLastOtpTime(sanitizedEmail);
-      })
-      .catch(() => {
-        document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
+    })
+    .then(res => res.json())
+    .then(result => {
+      document.getElementById("otp_result").textContent = result.code || "Không nhận được OTP";
+      
+      // Lưu thời gian và OTP vào Firebase
+      const timestamp = new Date().toISOString();
+      db.ref(`accounts/${sanitizedEmail}`).update({
+        lastOtpTime: timestamp,
+        otpCode: result.code || "Không nhận được OTP"
       });
-    }
+  
+      localStorage.setItem(`lastOtpTime_${sanitizedEmail}`, timestamp);
+      displayLastOtpTime(sanitizedEmail);
+  
+      // Giữ lại mục chọn tài khoản sau khi lấy OTP
+      loadAccounts(); // Gọi lại hàm loadAccounts() để giữ lại các tài khoản trong dropdown
+    })
+    .catch(() => {
+      document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
+    });
+  }
+  
+  function loadAccounts() {
+    const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
+    const select = document.getElementById("accountSelect");
+    select.innerHTML = "";
+    accounts.forEach((acc, idx) => {
+      const option = document.createElement("option");
+      option.value = idx;
+      option.textContent = `#${idx + 1} - ${acc.email}`;
+      select.appendChild(option);
+    });
+    if (accounts.length) updateAccountInfo(0);
+  }
+
 
     // Copy text to clipboard
     function copy(id) {
