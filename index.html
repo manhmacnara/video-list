@@ -116,6 +116,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAlmrhQkbhMXctil8crZ6GftfH9wAcKA",
       authDomain: "acctiktok-34c22.firebaseapp.com",
@@ -128,6 +129,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Sanitize email to use as a Firebase key
+    function sanitizeEmail(email) {
+      return email.replace(/[@.]/g, match => match === '@' ? '-at-' : '-dot-');
+    }
+
+    // Save new account information
     function saveAccounts() {
       const input = document.getElementById("accountInput").value.trim();
       if (!input) return;
@@ -146,6 +153,7 @@
       });
     }
 
+    // Fetch accounts from Firebase
     function fetchAccounts() {
       db.ref("accounts").once("value").then(snapshot => {
         const data = snapshot.val();
@@ -157,6 +165,7 @@
       });
     }
 
+    // Delete all accounts
     function deleteAccounts() {
       if (!confirm("Bạn có chắc muốn xóa tất cả?")) return;
       db.ref("accounts").remove().then(() => {
@@ -168,6 +177,7 @@
       });
     }
 
+    // Delete selected accounts
     function deleteSelectedAccounts() {
       const select = document.getElementById("accountSelect");
       const selectedIndexes = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
@@ -187,6 +197,7 @@
       });
     }
 
+    // Process account data from input and store in localStorage
     function processAccounts(accountData) {
       const accounts = accountData.split("\n").map(line => {
         const [user, password, email, pass_mail, refresh_token, client_id] = line.split("|");
@@ -196,6 +207,7 @@
       loadAccounts();
     }
 
+    // Load accounts into the selection dropdown
     function loadAccounts() {
       const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
       const select = document.getElementById("accountSelect");
@@ -209,10 +221,14 @@
       if (accounts.length) updateAccountInfo(0);
     }
 
+    // Update account info when selected
     function updateAccountInfo(index) {
       const accounts = JSON.parse(localStorage.getItem("accounts"));
       const acc = accounts[index];
       if (!acc) return;
+
+      const sanitizedEmail = sanitizeEmail(acc.email);
+
       document.getElementById("user").textContent = acc.user;
       document.getElementById("password").textContent = acc.password;
       document.getElementById("email").textContent = acc.email;
@@ -220,14 +236,15 @@
       window.currentAccount = acc;
 
       // Hiển thị thời gian lần OTP gần nhất
-      displayLastOtpTime(acc.email);
+      displayLastOtpTime(sanitizedEmail);
     }
 
-    function displayLastOtpTime(email) {
+    // Display last OTP time
+    function displayLastOtpTime(sanitizedEmail) {
       const timeElement = document.getElementById("lastOtpTime");
 
       // Lấy thời gian từ Firebase
-      db.ref(`accounts/${email}`).once("value").then(snapshot => {
+      db.ref(`accounts/${sanitizedEmail}`).once("value").then(snapshot => {
         const accountData = snapshot.val();
         if (accountData && accountData.lastOtpTime) {
           const lastOtpTime = accountData.lastOtpTime;
@@ -238,6 +255,7 @@
       });
     }
 
+    // Get OTP
     function getOtp() {
       const acc = window.currentAccount;
       if (!acc) return;
@@ -257,19 +275,21 @@
         
         // Lưu thời gian và OTP vào Firebase
         const timestamp = new Date().toISOString();
-        db.ref(`accounts/${acc.email}`).update({
+        const sanitizedEmail = sanitizeEmail(acc.email);
+        db.ref(`accounts/${sanitizedEmail}`).update({
           lastOtpTime: timestamp,
           otpCode: result.code || "Không nhận được OTP"
         });
 
-        localStorage.setItem(`lastOtpTime_${acc.email}`, timestamp);
-        displayLastOtpTime(acc.email);
+        localStorage.setItem(`lastOtpTime_${sanitizedEmail}`, timestamp);
+        displayLastOtpTime(sanitizedEmail);
       })
       .catch(() => {
         document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
       });
     }
 
+    // Copy text to clipboard
     function copy(id) {
       const text = document.getElementById(id).textContent;
       const textarea = document.createElement("textarea");
