@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Account OTP Dashboard</title>
   <style>
-
     body {
       font-family: Arial, sans-serif;
       background: #f5f5f5;
@@ -95,7 +94,6 @@
       transition: opacity 0.5s ease;
       z-index: 9999;
     }
-
     .toast.show {
       opacity: 1;
       pointer-events: auto;
@@ -168,8 +166,10 @@
     <button onclick="getOtp()">📩 Lấy OTP</button>
     <button onclick="deleteSelectedAccount()">🗑️ Xóa tài khoản này</button>
     <button onclick="deleteAllAccounts()">🔥 Xóa tất cả tài khoản</button>
-
   </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast">Đã sao chép!</div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -205,6 +205,9 @@
         if (groupSelect.options.length > 0) {
           changeGroup();
         }
+      }).catch(error => {
+        console.error("Lỗi khi tải nhóm:", error);
+        alert("Lỗi khi tải danh sách nhóm: " + error.message);
       });
     }
 
@@ -228,8 +231,12 @@
             document.getElementById("accountInfo").style.display = "none";
           }
         }
+      }).catch(error => {
+        console.error("Lỗi khi tải tài khoản:", error);
+        alert("Lỗi khi tải danh sách tài khoản: " + error.message);
       });
     }
+
     function deleteSelectedAccount() {
       const group = document.getElementById("groupSelect").value;
       const index = parseInt(document.getElementById("accountSelect").value);
@@ -247,6 +254,8 @@
           db.ref("accounts/" + group).set(list).then(() => {
             alert("Đã xóa tài khoản.");
             changeGroup();
+          }).catch(error => {
+            alert("Lỗi khi xóa tài khoản: " + error.message);
           });
         }
       });
@@ -264,6 +273,8 @@
       db.ref("accounts/" + group).set([]).then(() => {
         alert("Đã xóa toàn bộ tài khoản.");
         changeGroup();
+      }).catch(error => {
+        alert("Lỗi khi xóa tất cả tài khoản: " + error.message);
       });
     }
 
@@ -275,6 +286,9 @@
         if (Array.isArray(list) && index >= 0 && index < list.length) {
           updateAccountInfo(list[index]);
         }
+      }).catch(error => {
+        console.error("Lỗi khi thay đổi tài khoản:", error);
+        alert("Lỗi khi tải tài khoản: " + error.message);
       });
     }
 
@@ -301,6 +315,8 @@
         } else {
           document.getElementById("lastOtpTime").textContent = "Chưa có";
         }
+      }).catch(error => {
+        console.error("Lỗi khi tải thời gian OTP:", error);
       });
     }
 
@@ -332,46 +348,47 @@
       });
     }
 
-      function showToast(message = "Đã sao chép!") {
-        const toast = document.getElementById("toast");
-        toast.textContent = message;
-        toast.classList.add("show");
-        setTimeout(() => {
-          toast.classList.remove("show");
-        }, 2000);
-      }
+    function showToast(message = "Đã sao chép!") {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2000);
+    }
 
-      function copy(id) {
-        const text = document.getElementById(id).textContent;
-        if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(text)
-            .then(() => showToast())
-            .catch(() => fallbackCopy(text));
+    function copy(id) {
+      const text = document.getElementById(id).textContent;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast())
+          .catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "absolute";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        const successful = document.execCommand("copy");
+        if (successful) {
+          showToast();
         } else {
-          fallbackCopy(text);
+          showToast("Không thể sao chép");
         }
+      } catch (err) {
+        showToast("Thiết bị không hỗ trợ sao chép");
       }
+      document.body.removeChild(textarea);
+    }
 
-      function fallbackCopy(text) {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        textarea.setAttribute("readonly", "");
-        textarea.style.position = "absolute";
-        textarea.style.left = "-9999px";
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-          const successful = document.execCommand("copy");
-          if (successful) {
-            showToast();
-          } else {
-            showToast("Không thể sao chép");
-          }
-        } catch (err) {
-          showToast("Thiết bị không hỗ trợ sao chép");
-        }
-        document.body.removeChild(textarea);
-      }
     // Toggle form for adding a new group
     function toggleAddGroupForm() {
       const form = document.getElementById("addGroupForm");
@@ -382,14 +399,10 @@
     // Add a new group
     function addGroup() {
       const groupName = document.getElementById("newGroupName").value.trim();
-
-      // Kiểm tra trống
       if (!groupName) {
         alert("Vui lòng nhập tên nhóm!");
         return;
       }
-
-      // Kiểm tra ký tự không hợp lệ
       const invalidChars = /[.#$/\[\]]/;
       if (invalidChars.test(groupName)) {
         alert("Tên nhóm không được chứa các ký tự: . # $ [ ] /");
@@ -397,26 +410,23 @@
       }
 
       console.log("Đang tạo nhóm:", groupName);
+      // Chỉ tạo nhóm trong accounts
       db.ref("accounts/" + groupName).set([]).then(() => {
         loadGroups();
         toggleAddGroupForm();
         alert("Đã tạo nhóm mới: " + groupName);
       }).catch((error) => {
         console.error("Lỗi Firebase:", error);
-        alert("Lỗi khi tạo nhóm!");
+        alert("Lỗi khi tạo nhóm: " + error.message);
       });
     }
-
 
     // Toggle form for adding a new account (manual input)
     function toggleAddAccountForm() {
       const form = document.getElementById("addAccountForm");
       form.style.display = form.style.display === "block" ? "none" : "block";
       document.getElementById("newUser").value = "";
-      document.getElementById("newPassword").value = "";
       document.getElementById("newEmail").value = "";
-      document.getElementById("newRefreshToken").value = "";
-      document.getElementById("newClientId").value = "";
     }
 
     // Add a new account (manual input)
@@ -448,7 +458,6 @@
         });
       });
     }
-
 
     // Toggle form for adding a new account (line input)
     function toggleAddAccountLineForm() {
@@ -503,6 +512,5 @@
 
     loadGroups();
   </script>
-  <div id="toast" class="toast">Đã sao chép!</div>
 </body>
 </html>
