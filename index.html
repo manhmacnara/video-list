@@ -1,160 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Account OTP Dashboard (Theo nhóm)</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 10px; background: #f9f9f9; }
+    body { font-family: Arial; padding: 10px; background: #f0f0f0; }
     textarea, select, button, input[type="text"] {
       font-size: 14px; width: 100%; margin-top: 8px; padding: 8px; box-sizing: border-box;
     }
-    button { background-color: #007bff; color: white; border: none; border-radius: 6px; }
+    button {
+      background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer;
+    }
     button:hover { background-color: #0056b3; }
-    .section { margin-bottom: 15px; }
-    #modal {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center;
-    }
-    #modalContent {
-      background: white; padding: 20px; border-radius: 8px; width: 300px;
-    }
+    label { font-weight: bold; margin-top: 10px; display: block; }
   </style>
 </head>
 <body>
   <h2>Account OTP Dashboard (Theo nhóm)</h2>
 
-  <div class="section">
-    <label>✏️ Nhập tên nhóm (ví dụ: accounts1)</label>
-    <input type="text" id="groupName" placeholder="accounts1" />
-  </div>
+  <label>✏️ Nhập tên nhóm (ví dụ: accounts1)</label>
+  <input id="groupInput" type="text" placeholder="accounts1" />
 
-  <div class="section">
-    <textarea id="accountInput" rows="6" placeholder="user|pass|email|... mỗi dòng 1 tài khoản"></textarea>
-    <button onclick="saveAccounts()">💾 Lưu tài khoản</button>
-    <button onclick="loadAccounts()">🔄 Tải lại nhóm</button>
-    <button onclick="deleteGroup()">⚙️ Xóa toàn bộ nhóm</button>
-  </div>
+  <textarea id="accountInput" rows="5" placeholder="user|pass|email... mỗi dòng 1 tài khoản"></textarea>
+  <button onclick="saveAccounts()">💾 Lưu tài khoản</button>
+  <button onclick="loadAccounts()">🔄 Tải lại nhóm</button>
+  <button onclick="deleteGroup()">❎ Xóa toàn bộ nhóm</button>
 
-  <div class="section">
-    <label>🗂 Chọn tài khoản đã lưu:</label>
-    <select id="accountSelect" multiple></select>
-  </div>
+  <label>📋 Chọn tài khoản đã lưu:</label>
+  <select id="accountSelect" multiple></select>
 
-  <div class="section">
-    <label>📂 Các nhóm đã có:</label>
-    <select id="groupListDropdown"></select>
-    <button onclick="openRenameModal()">✏️ Đổi tên nhóm</button>
-  </div>
+  <label>🗂 Các nhóm đã có:</label>
+  <select id="groupList" onchange="selectExistingGroup()"></select>
+  <button onclick="renameGroup()">✏️ Đổi tên nhóm</button>
 
-  <!-- Modal -->
-  <div id="modal">
-    <div id="modalContent">
-      <h4>Đổi tên nhóm</h4>
-      <input type="text" id="newGroupName" placeholder="Tên nhóm mới" />
-      <button onclick="renameGroup()">✅ Xác nhận</button>
-      <button onclick="closeModal()">❌ Hủy</button>
-    </div>
-  </div>
-
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <script>
-    const firebaseConfig = {
+    const config = {
       apiKey: "AIzaSyAlmrhQkbhMXctil8crZ6GftfH9wAcKA",
       authDomain: "acctiktok-34c22.firebaseapp.com",
       databaseURL: "https://acctiktok-34c22-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "acctiktok-34c22",
-      storageBucket: "acctiktok-34c22.appspot.com",
-      messagingSenderId: "788776632508",
-      appId: "1:788776632508:web:c94467809ce41f68027ceb"
     };
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(config);
     const db = firebase.database();
 
     function saveAccounts() {
-      const group = document.getElementById("groupName").value.trim();
+      const group = document.getElementById("groupInput").value.trim();
       const input = document.getElementById("accountInput").value.trim();
-      if (!group || !input) return alert("Vui lòng nhập tên nhóm và dữ liệu tài khoản");
-      const lines = input.split("\n").filter(l => l.includes("|"));
-      db.ref("accounts/" + group).set(lines).then(() => {
-        alert("Đã lưu tài khoản cho nhóm: " + group);
-        updateGroupList();
+      if (!group || !input) return alert("Vui lòng nhập tên nhóm và tài khoản.");
+      const lines = input.split("\n").filter(line => line.includes("|"));
+      db.ref(group).set(lines).then(() => {
+        alert("✅ Đã lưu tài khoản.");
+        loadGroupList(group);
       });
     }
 
     function loadAccounts() {
-      const group = document.getElementById("groupName").value.trim();
-      if (!group) return alert("Nhập tên nhóm để tải");
-      db.ref("accounts/" + group).once("value").then(snap => {
-        const data = snap.val();
+      const group = document.getElementById("groupInput").value.trim();
+      if (!group) return;
+      db.ref(group).once("value").then(snap => {
+        const data = snap.val() || [];
         const select = document.getElementById("accountSelect");
         select.innerHTML = "";
-        if (Array.isArray(data)) {
-          data.forEach((acc, idx) => {
-            const option = document.createElement("option");
-            option.text = acc;
-            option.value = idx;
-            select.appendChild(option);
-          });
-        }
+        data.forEach((line, i) => {
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = line;
+          select.appendChild(option);
+        });
       });
+    }
+
+    function loadGroupList(selected = "") {
+      db.ref().once("value").then(snap => {
+        const data = snap.val() || {};
+        const list = document.getElementById("groupList");
+        list.innerHTML = "";
+        for (const key in data) {
+          if (Array.isArray(data[key])) {
+            const option = document.createElement("option");
+            option.value = key;
+            option.textContent = key;
+            list.appendChild(option);
+          }
+        }
+        if (selected) list.value = selected;
+      });
+    }
+
+    function selectExistingGroup() {
+      const group = document.getElementById("groupList").value;
+      document.getElementById("groupInput").value = group;
+      loadAccounts();
     }
 
     function deleteGroup() {
-      const group = document.getElementById("groupName").value.trim();
-      if (!group || !confirm("Xóa toàn bộ nhóm này?")) return;
-      db.ref("accounts/" + group).remove().then(() => {
-        alert("Đã xóa nhóm " + group);
-        updateGroupList();
+      const group = document.getElementById("groupInput").value.trim();
+      if (!group) return alert("Nhập tên nhóm!");
+      if (!confirm("Bạn có chắc muốn xóa nhóm " + group + "?")) return;
+      db.ref(group).remove().then(() => {
+        alert("🗑️ Đã xóa nhóm.");
+        document.getElementById("accountSelect").innerHTML = "";
+        document.getElementById("accountInput").value = "";
+        loadGroupList();
       });
-    }
-
-    function updateGroupList() {
-      db.ref("accounts").once("value").then(snap => {
-        const data = snap.val() || {};
-        const dropdown = document.getElementById("groupListDropdown");
-        dropdown.innerHTML = "";
-        for (const name in data) {
-          const option = document.createElement("option");
-          option.value = name;
-          option.textContent = name;
-          dropdown.appendChild(option);
-        }
-      });
-    }
-
-    function openRenameModal() {
-      const selected = document.getElementById("groupListDropdown").value;
-      if (!selected) return alert("Chọn nhóm để đổi tên");
-      document.getElementById("newGroupName").value = "";
-      document.getElementById("modal").style.display = "flex";
-    }
-
-    function closeModal() {
-      document.getElementById("modal").style.display = "none";
     }
 
     function renameGroup() {
-      const oldName = document.getElementById("groupListDropdown").value;
-      const newName = document.getElementById("newGroupName").value.trim();
-      if (!oldName || !newName) return alert("Thiếu tên nhóm");
-      if (oldName === newName) return alert("Tên mới giống tên cũ");
+      const oldName = document.getElementById("groupInput").value.trim();
+      if (!oldName) return alert("⛔ Nhập nhóm muốn đổi tên.");
+      const newName = prompt("Nhập tên mới cho nhóm:", oldName);
+      if (!newName || newName === oldName) return;
 
-      db.ref("accounts/" + oldName).once("value").then(snap => {
-        const data = snap.val();
-        if (!data) return alert("Không tìm thấy nhóm cũ");
-        db.ref("accounts/" + newName).set(data).then(() => {
-          db.ref("accounts/" + oldName).remove().then(() => {
-            alert("Đã đổi tên nhóm thành công");
-            closeModal();
-            updateGroupList();
+      db.ref(oldName).once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return alert("⛔ Không tìm thấy nhóm cũ!");
+
+        db.ref(newName).set(data).then(() => {
+          db.ref(oldName).remove().then(() => {
+            alert("✅ Đã đổi tên nhóm!");
+            document.getElementById("groupInput").value = newName;
+            loadGroupList(newName);
+            loadAccounts();
           });
         });
       });
     }
 
-    updateGroupList();
+    loadGroupList();
   </script>
 </body>
 </html>
