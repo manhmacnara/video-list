@@ -18,6 +18,8 @@
 
   <label for="groupName">✏️ Nhập tên nhóm (ví dụ: accounts1)</label>
   <input type="text" id="groupName" placeholder="accounts1" />
+  <input type="text" id="newGroupName" placeholder="Tên nhóm mới (VD: accounts2)">
+  <button onclick="renameGroup()">✏️ Đổi tên nhóm</button>
 
   <textarea id="accountInput" rows="6" placeholder="user|pass|email|... mỗi dòng 1 tài khoản"></textarea>
   <button onclick="saveAccounts()">📄 Lưu tài khoản</button>
@@ -109,6 +111,40 @@
         }
       });
     }
+    function renameGroup() {
+      const oldName = document.getElementById("groupName").value.trim();
+      const newName = document.getElementById("newGroupName").value.trim();
+    
+      if (!oldName || !newName) return alert("Nhập tên nhóm cũ và mới!");
+      if (oldName === newName) return alert("Tên mới phải khác tên cũ!");
+    
+      const ref = firebase.database().ref("accounts");
+    
+      ref.child(oldName).once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return alert("Không tìm thấy nhóm cũ!");
+    
+        // Copy dữ liệu sang nhóm mới
+        ref.child(newName).set(data).then(() => {
+          // Xoá nhóm cũ
+          ref.child(oldName).remove();
+    
+          // Cập nhật danh sách group_names
+          firebase.database().ref("group_names").once("value").then(snap => {
+            let list = snap.val() || [];
+            list = list.filter(name => name !== oldName);
+            list.push(newName);
+            firebase.database().ref("group_names").set(list).then(() => {
+              alert("Đổi tên nhóm thành công!");
+              document.getElementById("groupName").value = newName;
+              document.getElementById("newGroupName").value = "";
+              loadGroupList();
+            });
+          });
+        });
+      });
+    }
+        
 
     function loadGroupFromList() {
       const selected = document.getElementById("groupList").value;
