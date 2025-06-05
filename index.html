@@ -277,13 +277,11 @@
 
     function copy(id) {
       const text = document.getElementById(id).textContent;
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert("Đã sao chép!");
-        }).catch(() => fallbackCopy(text));
-      } else {
-        fallbackCopy(text);
-      }
+    
+      // Sử dụng Clipboard API mà không alert
+      navigator.clipboard.writeText(text).catch(() => {
+        console.error("Không thể sao chép văn bản.");
+      });
     }
     function fallbackCopy(text) {
       const textarea = document.createElement("textarea");
