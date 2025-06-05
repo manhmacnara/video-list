@@ -237,21 +237,16 @@
       });
     }
 
+    // Copy text to clipboard
     function copy(id) {
       const text = document.getElementById(id).textContent;
-      // Phương pháp thay thế cho di động: tạo textarea tạm thời
       const textarea = document.createElement("textarea");
       textarea.value = text;
       document.body.appendChild(textarea);
       textarea.select();
-      try {
-        document.execCommand("copy");
-        alert("Đã sao chép!");
-      } catch (err) {
-        alert("Không thể sao chép, vui lòng thử lại!");
-      } finally {
-        document.body.removeChild(textarea);
-      }
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      alert("Đã sao chép!");
     }
 
     loadGroups();
