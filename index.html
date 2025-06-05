@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Account OTP Dashboard</title>
   <style>
+
     body {
       font-family: Arial, sans-serif;
       background: #f5f5f5;
@@ -79,13 +80,33 @@
     .form-container button {
       margin-top: 5px;
     }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
   </style>
 </head>
 <body>
 
   <h2>Account OTP Dashboard</h2>
 
-  <label for="groupSelect">🔖 Nhóm đang sử dụng:</label>
+  <label for="groupSelect">🔖 Nhóm SD:</label>
   <select id="groupSelect" onchange="changeGroup()"></select>
   <button onclick="toggleAddGroupForm()">➕ Thêm nhóm</button>
 
@@ -95,17 +116,14 @@
     <button onclick="toggleAddGroupForm()">Hủy</button>
   </div>
 
-  <label for="accountSelect">📋 Chọn tài khoản:</label>
+  <label for="accountSelect">📋 Chọn TK:</label>
   <select id="accountSelect" onchange="changeAccount()"></select>
-  <button onclick="toggleAddAccountForm()">➕ Thêm tài khoản (Nhập thủ công)</button>
-  <button onclick="toggleAddAccountLineForm()">➕ Thêm tài khoản (Dán 1 dòng)</button>
+  <button onclick="toggleAddAccountForm()">➕ TK Khác</button>
+  <button onclick="toggleAddAccountLineForm()">➕ Thêm TK</button>
 
   <div id="addAccountForm" class="form-container">
-    <input type="text" id="newUser" placeholder="User" />
-    <input type="text" id="newPassword" placeholder="Password" />
-    <input type="email" id="newEmail" placeholder="Email" />
-    <input type="text" id="newRefreshToken" placeholder="Refresh Token" />
-    <input type="text" id="newClientId" placeholder="Client ID" />
+    <input type="text" id="newUser" placeholder="User (tùy chọn)" />
+    <input type="email" id="newEmail" placeholder="Email (tùy chọn)" />
     <button onclick="addAccount()">Thêm</button>
     <button onclick="toggleAddAccountForm()">Hủy</button>
   </div>
@@ -148,6 +166,9 @@
 
     <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">Chưa có</span></p>
     <button onclick="getOtp()">📩 Lấy OTP</button>
+    <button onclick="deleteSelectedAccount()">🗑️ Xóa tài khoản này</button>
+    <button onclick="deleteAllAccounts()">🔥 Xóa tất cả tài khoản</button>
+
   </div>
 
   <!-- Firebase SDK -->
@@ -207,6 +228,42 @@
             document.getElementById("accountInfo").style.display = "none";
           }
         }
+      });
+    }
+    function deleteSelectedAccount() {
+      const group = document.getElementById("groupSelect").value;
+      const index = parseInt(document.getElementById("accountSelect").value);
+      if (!group || isNaN(index)) {
+        alert("Không tìm thấy tài khoản để xóa!");
+        return;
+      }
+
+      if (!confirm("Bạn có chắc muốn xóa tài khoản này?")) return;
+
+      db.ref("accounts/" + group).once("value").then(snapshot => {
+        const list = snapshot.val() || [];
+        if (index >= 0 && index < list.length) {
+          list.splice(index, 1);
+          db.ref("accounts/" + group).set(list).then(() => {
+            alert("Đã xóa tài khoản.");
+            changeGroup();
+          });
+        }
+      });
+    }
+
+    function deleteAllAccounts() {
+      const group = document.getElementById("groupSelect").value;
+      if (!group) {
+        alert("Chưa chọn nhóm!");
+        return;
+      }
+
+      if (!confirm("Bạn có chắc muốn xóa toàn bộ tài khoản trong nhóm này?")) return;
+
+      db.ref("accounts/" + group).set([]).then(() => {
+        alert("Đã xóa toàn bộ tài khoản.");
+        changeGroup();
       });
     }
 
@@ -275,30 +332,46 @@
       });
     }
 
-    function copy(id) {
-      const text = document.getElementById(id).textContent;
-    
-      // Sử dụng Clipboard API mà không alert
-      navigator.clipboard.writeText(text).catch(() => {
-        console.error("Không thể sao chép văn bản.");
-      });
-    }
-    function fallbackCopy(text) {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "absolute";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand("copy");
-        alert("Đã sao chép!");
-      } catch (err) {
-        alert("Trình duyệt không hỗ trợ sao chép");
+      function showToast(message = "Đã sao chép!") {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2000);
       }
-      document.body.removeChild(textarea);
-    }
+
+      function copy(id) {
+        const text = document.getElementById(id).textContent;
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text)
+            .then(() => showToast())
+            .catch(() => fallbackCopy(text));
+        } else {
+          fallbackCopy(text);
+        }
+      }
+
+      function fallbackCopy(text) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          const successful = document.execCommand("copy");
+          if (successful) {
+            showToast();
+          } else {
+            showToast("Không thể sao chép");
+          }
+        } catch (err) {
+          showToast("Thiết bị không hỗ trợ sao chép");
+        }
+        document.body.removeChild(textarea);
+      }
     // Toggle form for adding a new group
     function toggleAddGroupForm() {
       const form = document.getElementById("addGroupForm");
@@ -309,18 +382,31 @@
     // Add a new group
     function addGroup() {
       const groupName = document.getElementById("newGroupName").value.trim();
+
+      // Kiểm tra trống
       if (!groupName) {
         alert("Vui lòng nhập tên nhóm!");
         return;
       }
+
+      // Kiểm tra ký tự không hợp lệ
+      const invalidChars = /[.#$/\[\]]/;
+      if (invalidChars.test(groupName)) {
+        alert("Tên nhóm không được chứa các ký tự: . # $ [ ] /");
+        return;
+      }
+
+      console.log("Đang tạo nhóm:", groupName);
       db.ref("accounts/" + groupName).set([]).then(() => {
         loadGroups();
         toggleAddGroupForm();
         alert("Đã tạo nhóm mới: " + groupName);
-      }).catch(() => {
+      }).catch((error) => {
+        console.error("Lỗi Firebase:", error);
         alert("Lỗi khi tạo nhóm!");
       });
     }
+
 
     // Toggle form for adding a new account (manual input)
     function toggleAddAccountForm() {
@@ -340,18 +426,16 @@
         alert("Vui lòng chọn một nhóm trước!");
         return;
       }
-      const user = document.getElementById("newUser").value.trim();
-      const password = document.getElementById("newPassword").value.trim();
-      const email = document.getElementById("newEmail").value.trim();
-      const refreshToken = document.getElementById("newRefreshToken").value.trim();
-      const clientId = document.getElementById("newClientId").value.trim();
 
-      if (!user || !password || !email || !refreshToken || !clientId) {
-        alert("Vui lòng nhập đầy đủ thông tin tài khoản!");
+      const user = document.getElementById("newUser").value.trim();
+      const email = document.getElementById("newEmail").value.trim();
+
+      if (!user && !email) {
+        alert("Vui lòng nhập ít nhất User hoặc Email!");
         return;
       }
 
-      const accountString = `${user}|${password}|${email}||${refreshToken}|${clientId}`;
+      const accountString = `${user}| |${email}|| | `;
       db.ref("accounts/" + group).once("value").then(snapshot => {
         const list = snapshot.val() || [];
         list.push(accountString);
@@ -364,6 +448,7 @@
         });
       });
     }
+
 
     // Toggle form for adding a new account (line input)
     function toggleAddAccountLineForm() {
@@ -418,5 +503,6 @@
 
     loadGroups();
   </script>
+  <div id="toast" class="toast">Đã sao chép!</div>
 </body>
 </html>
