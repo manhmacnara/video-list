@@ -15,7 +15,6 @@
     }
     textarea, select, input, button {
       font-size: 14px;
-      width: 100%;
       margin-top: 8px;
       padding: 10px;
       box-sizing: border-box;
@@ -44,20 +43,27 @@
       margin-bottom: 6px;
       display: block;
     }
+    .field-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
     .value {
       background: #eee;
       padding: 8px;
       border-radius: 5px;
       word-break: break-word;
+      flex: 1;
+      min-width: 0;
     }
     .copy-btn {
       background-color: #28a745;
       color: white;
       border: none;
-      width: 100%;
-      margin-top: 6px;
       padding: 8px;
       border-radius: 6px;
+      width: 100px;
+      white-space: nowrap;
     }
     .copy-btn:hover {
       background-color: #1e7e34;
@@ -77,33 +83,31 @@
   <div class="account-box" id="accountInfo" style="display:none">
     <div class="field">
       <div class="label">User:</div>
-      <div class="value" id="user"></div>
-      <button class="copy-btn" onclick="copy('user')">📋 Sao chép</button>
+      <div class="field-content">
+        <div class="value" id="user"></div>
+        <button class="copy-btn" onclick="copy('user')">📋 Sao chép</button>
+      </div>
     </div>
     <div class="field">
       <div class="label">Password:</div>
-      <div class="value" id="password"></div>
-      <button class="copy-btn" onclick="copy('password')">📋 Sao chép</button>
+      <div class="field-content">
+        <div class="value" id="password"></div>
+        <button class="copy-btn" onclick="copy('password')">📋 Sao chép</button>
+      </div>
     </div>
     <div class="field">
       <div class="label">Email:</div>
-      <div class="value" id="email"></div>
-      <button class="copy-btn" onclick="copy('email')">📋 Sao chép</button>
+      <div class="field-content">
+        <div class="value" id="email"></div>
+        <button class="copy-btn" onclick="copy('email')">📋 Sao chép</button>
+      </div>
     </div>
     <div class="field">
       <div class="label">OTP:</div>
-      <div class="value" id="otp_result">Đang tải...</div>
-      <button class="copy-btn" onclick="copy('otp_result')">📋 Sao chép</button>
-    </div>
-    <div class="field">
-      <div class="label">RefToken:</div>
-      <div class="value" id="refresh_token"></div>
-      <button class="copy-btn" onclick="copy('refresh_token')">📋 Sao chép</button>
-    </div>
-    <div class="field">
-      <div class="label">Client ID:</div>
-      <div class="value" id="client_id"></div>
-      <button class="copy-btn" onclick="copy('client_id')">📋 Sao chép</button>
+      <div class="field-content">
+        <div class="value" id="otp_result">Đang tải...</div>
+        <button class="copy-btn" onclick="copy('otp_result')">📋 Sao chép</button>
+      </div>
     </div>
 
     <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">Chưa có</span></p>
@@ -161,7 +165,9 @@
             option.textContent = `#${i + 1} - ${email}`;
             accountSelect.appendChild(option);
           });
-          updateAccountInfo(list[0]);
+          if (list.length > 0) {
+            updateAccountInfo(list[0]);
+          }
         }
       });
     }
@@ -171,7 +177,9 @@
       const group = document.getElementById("groupSelect").value;
       db.ref("accounts/" + group).once("value").then(snapshot => {
         const list = snapshot.val();
-        updateAccountInfo(list[index]);
+        if (Array.isArray(list) && index >= 0 && index < list.length) {
+          updateAccountInfo(list[index]);
+        }
       });
     }
 
@@ -188,8 +196,6 @@
       document.getElementById("user").textContent = acc.user;
       document.getElementById("password").textContent = acc.password;
       document.getElementById("email").textContent = acc.email;
-      document.getElementById("refresh_token").textContent = acc.refresh_token;
-      document.getElementById("client_id").textContent = acc.client_id;
       document.getElementById("otp_result").textContent = "Đang tải...";
       document.getElementById("accountInfo").style.display = "block";
       const key = sanitizeEmail(acc.email);
