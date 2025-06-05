@@ -1,20 +1,23 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Account OTP Dashboard (Mobile)</title>
+  <title>Account OTP Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f9f9f9;
+      background: #f5f5f5;
       padding: 10px;
     }
-    textarea, select, input[type="text"], button {
+    h2 {
+      margin-bottom: 10px;
+    }
+    textarea, select, input, button {
       font-size: 14px;
       width: 100%;
-      padding: 8px;
       margin-top: 8px;
+      padding: 10px;
       box-sizing: border-box;
     }
     button {
@@ -26,93 +29,85 @@
     button:hover {
       background-color: #0056b3;
     }
-    .info-box {
+    .account-box {
       background: white;
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-top: 15px;
     }
-    .info-row {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 10px;
+    .field {
+      margin-bottom: 15px;
     }
-    .info-label {
+    .label {
       font-weight: bold;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      display: block;
     }
-    .info-value {
-      display: flex;
-      align-items: center;
+    .value {
       background: #eee;
-      padding: 6px;
-      border-radius: 6px;
-      font-size: 14px;
-      word-break: break-all;
+      padding: 8px;
+      border-radius: 5px;
+      word-break: break-word;
     }
     .copy-btn {
-      margin-left: auto;
-      margin-top: 6px;
-      width: 100%;
-      background: #28a745;
+      background-color: #28a745;
       color: white;
       border: none;
-      padding: 6px;
+      width: 100%;
+      margin-top: 6px;
+      padding: 8px;
       border-radius: 6px;
     }
     .copy-btn:hover {
       background-color: #1e7e34;
     }
-    .otp-button {
-      margin-top: 10px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 6px;
-    }
   </style>
 </head>
 <body>
-  <h3>Account OTP Dashboard</h3>
+
+  <h2>Account OTP Dashboard</h2>
+
+  <label for="groupSelect">🔖 Nhóm đang sử dụng:</label>
+  <select id="groupSelect" onchange="changeGroup()"></select>
 
   <label for="accountSelect">📋 Chọn tài khoản:</label>
-  <select id="accountSelect" onchange="updateAccountInfo(this.value)"></select>
+  <select id="accountSelect" onchange="changeAccount()"></select>
 
-  <div class="info-box" id="accountInfo" style="display:none">
-    <div class="info-row">
-      <div class="info-label">User:</div>
-      <div class="info-value" id="user"></div>
-      <button class="copy-btn" onclick="copyText('user')">📋 Sao chép</button>
+  <div class="account-box" id="accountInfo" style="display:none">
+    <div class="field">
+      <div class="label">User:</div>
+      <div class="value" id="user"></div>
+      <button class="copy-btn" onclick="copy('user')">📋 Sao chép</button>
     </div>
-    <div class="info-row">
-      <div class="info-label">Password:</div>
-      <div class="info-value" id="password"></div>
-      <button class="copy-btn" onclick="copyText('password')">📋 Sao chép</button>
+    <div class="field">
+      <div class="label">Password:</div>
+      <div class="value" id="password"></div>
+      <button class="copy-btn" onclick="copy('password')">📋 Sao chép</button>
     </div>
-    <div class="info-row">
-      <div class="info-label">Email:</div>
-      <div class="info-value" id="email"></div>
-      <button class="copy-btn" onclick="copyText('email')">📋 Sao chép</button>
+    <div class="field">
+      <div class="label">Email:</div>
+      <div class="value" id="email"></div>
+      <button class="copy-btn" onclick="copy('email')">📋 Sao chép</button>
     </div>
-    <div class="info-row">
-      <div class="info-label">OTP:</div>
-      <div class="info-value" id="otp_result"></div>
-      <button class="copy-btn" onclick="copyText('otp_result')">📋 Sao chép</button>
+    <div class="field">
+      <div class="label">OTP:</div>
+      <div class="value" id="otp_result">Đang tải...</div>
+      <button class="copy-btn" onclick="copy('otp_result')">📋 Sao chép</button>
     </div>
-    <div class="info-row">
-      <div class="info-label">RefToken:</div>
-      <div class="info-value" id="ref_token"></div>
-      <button class="copy-btn" onclick="copyText('ref_token')">📋 Sao chép</button>
+    <div class="field">
+      <div class="label">RefToken:</div>
+      <div class="value" id="refresh_token"></div>
+      <button class="copy-btn" onclick="copy('refresh_token')">📋 Sao chép</button>
     </div>
-    <div class="info-row">
-      <div class="info-label">Client ID:</div>
-      <div class="info-value" id="client_id"></div>
-      <button class="copy-btn" onclick="copyText('client_id')">📋 Sao chép</button>
+    <div class="field">
+      <div class="label">Client ID:</div>
+      <div class="value" id="client_id"></div>
+      <button class="copy-btn" onclick="copy('client_id')">📋 Sao chép</button>
     </div>
-    <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">N/A</span></p>
-    <button class="otp-button" onclick="getOtp()">📩 Lấy OTP</button>
+
+    <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">Chưa có</span></p>
+    <button onclick="getOtp()">📩 Lấy OTP</button>
   </div>
 
   <!-- Firebase SDK -->
@@ -132,87 +127,118 @@
     const db = firebase.database();
 
     function sanitizeEmail(email) {
-      return email.replace(/[@.]/g, m => m === '@' ? '-at-' : '-dot-');
+      return email.replace(/[@.]/g, match => match === '@' ? '-at-' : '-dot-');
     }
 
-    function loadAccounts() {
-      db.ref("accounts/tk1").once("value").then(snapshot => {
-        const raw = snapshot.val();
-        const accounts = (raw || []).map(line => {
-          const [user, password, email, pass_mail, refresh_token, client_id] = line.split("|");
-          return { user, password, email, pass_mail, refresh_token, client_id };
-        });
-        localStorage.setItem("accounts", JSON.stringify(accounts));
-        const select = document.getElementById("accountSelect");
-        select.innerHTML = "";
-        accounts.forEach((acc, i) => {
-          const opt = document.createElement("option");
-          opt.value = i;
-          opt.textContent = `#${i + 1} - ${acc.email}`;
-          select.appendChild(opt);
-        });
-        updateAccountInfo(0);
+    function loadGroups() {
+      db.ref("accounts").once("value").then(snapshot => {
+        const groups = snapshot.val() || {};
+        const groupSelect = document.getElementById("groupSelect");
+        groupSelect.innerHTML = "";
+        for (const group in groups) {
+          const option = document.createElement("option");
+          option.value = group;
+          option.textContent = group;
+          groupSelect.appendChild(option);
+        }
+        if (groupSelect.options.length > 0) {
+          changeGroup();
+        }
       });
     }
 
-    function updateAccountInfo(index) {
-      const accs = JSON.parse(localStorage.getItem("accounts") || "[]");
-      const acc = accs[index];
-      if (!acc) return;
+    function changeGroup() {
+      const group = document.getElementById("groupSelect").value;
+      db.ref("accounts/" + group).once("value").then(snapshot => {
+        const list = snapshot.val();
+        const accountSelect = document.getElementById("accountSelect");
+        accountSelect.innerHTML = "";
+        if (Array.isArray(list)) {
+          list.forEach((acc, i) => {
+            const email = acc.split("|")[2] || "";
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = `#${i + 1} - ${email}`;
+            accountSelect.appendChild(option);
+          });
+          updateAccountInfo(list[0]);
+        }
+      });
+    }
+
+    function changeAccount() {
+      const index = document.getElementById("accountSelect").value;
+      const group = document.getElementById("groupSelect").value;
+      db.ref("accounts/" + group).once("value").then(snapshot => {
+        const list = snapshot.val();
+        updateAccountInfo(list[index]);
+      });
+    }
+
+    function updateAccountInfo(line) {
+      const parts = line.split("|");
+      const acc = {
+        user: parts[0] || "",
+        password: parts[1] || "",
+        email: parts[2] || "",
+        refresh_token: parts[4] || "",
+        client_id: parts[5] || ""
+      };
       window.currentAccount = acc;
       document.getElementById("user").textContent = acc.user;
       document.getElementById("password").textContent = acc.password;
       document.getElementById("email").textContent = acc.email;
-      document.getElementById("ref_token").textContent = acc.refresh_token;
+      document.getElementById("refresh_token").textContent = acc.refresh_token;
       document.getElementById("client_id").textContent = acc.client_id;
       document.getElementById("otp_result").textContent = "Đang tải...";
       document.getElementById("accountInfo").style.display = "block";
       const key = sanitizeEmail(acc.email);
-      db.ref("otpTimestamps/" + key).once("value").then(snap => {
-        const data = snap.val();
-        if (data && data.lastOtpTime)
+      db.ref(`otpTimestamps/${key}`).once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (data && data.lastOtpTime) {
           document.getElementById("lastOtpTime").textContent = new Date(data.lastOtpTime).toLocaleString();
+        } else {
+          document.getElementById("lastOtpTime").textContent = "Chưa có";
+        }
       });
     }
 
     function getOtp() {
       const acc = window.currentAccount;
+      if (!acc) return;
       const key = sanitizeEmail(acc.email);
       fetch("https://tool.unlimitmail.com/api/get_code_oauth2", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
           type: "tiktok",
           email: acc.email,
           refresh_token: acc.refresh_token,
           client_id: acc.client_id
         })
-      }).then(res => res.json())
-        .then(result => {
-          const code = result.code || "Không có OTP";
-          document.getElementById("otp_result").textContent = code;
-          db.ref("otpTimestamps/" + key).update({
-            otpCode: code,
-            lastOtpTime: new Date().toISOString()
-          });
-        }).catch(() => {
-          document.getElementById("otp_result").textContent = "Lỗi API";
+      })
+      .then(res => res.json())
+      .then(data => {
+        const code = data.code || "Không nhận được OTP";
+        document.getElementById("otp_result").textContent = code;
+        db.ref(`otpTimestamps/${key}`).update({
+          lastOtpTime: new Date().toISOString(),
+          otpCode: code
         });
+      })
+      .catch(() => {
+        document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
+      });
     }
 
-    function copyText(id) {
-      const el = document.getElementById(id);
-      const text = el.textContent;
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      alert("Đã sao chép!");
+    function copy(id) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Đã sao chép!");
+      });
     }
 
-    window.onload = loadAccounts;
+    loadGroups();
   </script>
 </body>
 </html>
