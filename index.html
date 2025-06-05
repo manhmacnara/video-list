@@ -86,15 +86,40 @@
 <select id="accountSelect" multiple></select>
 
 <div class="account-box" id="accountInfo" style="display:none">
-  <div class="info-row"><div class="info-label">User:</div><div class="info-value" id="user"></div><button class="copy-btn" onclick="copyText('user')">📋</button></div>
-  <div class="info-row"><div class="info-label">Password:</div><div class="info-value" id="password"></div><button class="copy-btn" onclick="copyText('password')">📋</button></div>
-  <div class="info-row"><div class="info-label">Email:</div><div class="info-value" id="email"></div><button class="copy-btn" onclick="copyText('email')">📋</button></div>
-  <div class="info-row"><div class="info-label">OTP:</div><div class="info-value" id="otp_result"></div><button class="copy-btn" onclick="copyText('otp_result')">📋</button></div>
-  <div class="info-row"><div class="info-label">RefToken:</div><div class="info-value" id="refresh_token"></div><button class="copy-btn" onclick="copyText('refresh_token')">📋</button></div>
-  <div class="info-row"><div class="info-label">Client ID:</div><div class="info-value" id="client_id"></div><button class="copy-btn" onclick="copyText('client_id')">📋</button></div>
+  <div class="field">
+    <div class="label">User:</div>
+    <div class="value" id="user"></div>
+    <button class="copy-full" onclick="copyText('user')">📋 Sao chép</button>
+  </div>
+  <div class="field">
+    <div class="label">Password:</div>
+    <div class="value" id="password"></div>
+    <button class="copy-full" onclick="copyText('password')">📋 Sao chép</button>
+  </div>
+  <div class="field">
+    <div class="label">Email:</div>
+    <div class="value" id="email"></div>
+    <button class="copy-full" onclick="copyText('email')">📋 Sao chép</button>
+  </div>
+  <div class="field">
+    <div class="label">OTP:</div>
+    <div class="value" id="otp_result"></div>
+    <button class="copy-full" onclick="copyText('otp_result')">📋 Sao chép</button>
+  </div>
+  <div class="field">
+    <div class="label">RefToken:</div>
+    <div class="value" id="refresh_token"></div>
+    <button class="copy-full" onclick="copyText('refresh_token')">📋 Sao chép</button>
+  </div>
+  <div class="field">
+    <div class="label">Client ID:</div>
+    <div class="value" id="client_id"></div>
+    <button class="copy-full" onclick="copyText('client_id')">📋 Sao chép</button>
+  </div>
   <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime"></span></p>
-  <button onclick="getOtp()">📩 Lấy OTP</button>
+  <button onclick="getOtp()" style="background:#007bff;width:100%;padding:10px;border-radius:6px;">📩 Lấy OTP</button>
 </div>
+
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
