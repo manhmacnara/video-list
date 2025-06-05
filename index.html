@@ -68,6 +68,17 @@
     .copy-btn:hover {
       background-color: #1e7e34;
     }
+    .form-container {
+      margin-top: 10px;
+      display: none;
+    }
+    .form-container input, .form-container textarea {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    .form-container button {
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -76,9 +87,34 @@
 
   <label for="groupSelect">🔖 Nhóm đang sử dụng:</label>
   <select id="groupSelect" onchange="changeGroup()"></select>
+  <button onclick="toggleAddGroupForm()">➕ Thêm nhóm</button>
+
+  <div id="addGroupForm" class="form-container">
+    <input type="text" id="newGroupName" placeholder="Tên nhóm mới" />
+    <button onclick="addGroup()">Tạo nhóm</button>
+    <button onclick="toggleAddGroupForm()">Hủy</button>
+  </div>
 
   <label for="accountSelect">📋 Chọn tài khoản:</label>
   <select id="accountSelect" onchange="changeAccount()"></select>
+  <button onclick="toggleAddAccountForm()">➕ Thêm tài khoản (Nhập thủ công)</button>
+  <button onclick="toggleAddAccountLineForm()">➕ Thêm tài khoản (Dán 1 dòng)</button>
+
+  <div id="addAccountForm" class="form-container">
+    <input type="text" id="newUser" placeholder="User" />
+    <input type="text" id="newPassword" placeholder="Password" />
+    <input type="email" id="newEmail" placeholder="Email" />
+    <input type="text" id="newRefreshToken" placeholder="Refresh Token" />
+    <input type="text" id="newClientId" placeholder="Client ID" />
+    <button onclick="addAccount()">Thêm</button>
+    <button onclick="toggleAddAccountForm()">Hủy</button>
+  </div>
+
+  <div id="addAccountLineForm" class="form-container">
+    <textarea id="accountLine" placeholder="Dán dòng tài khoản (VD: user|password|email||refresh_token|client_id)" rows="2"></textarea>
+    <button onclick="addAccountFromLine()">Thêm</button>
+    <button onclick="toggleAddAccountLineForm()">Hủy</button>
+  </div>
 
   <div class="account-box" id="accountInfo" style="display:none">
     <div class="field">
@@ -167,6 +203,8 @@
           });
           if (list.length > 0) {
             updateAccountInfo(list[0]);
+          } else {
+            document.getElementById("accountInfo").style.display = "none";
           }
         }
       });
@@ -247,6 +285,123 @@
       document.execCommand("copy");
       document.body.removeChild(textarea);
       alert("Đã sao chép!");
+    }
+
+    // Toggle form for adding a new group
+    function toggleAddGroupForm() {
+      const form = document.getElementById("addGroupForm");
+      form.style.display = form.style.display === "block" ? "none" : "block";
+      document.getElementById("newGroupName").value = "";
+    }
+
+    // Add a new group
+    function addGroup() {
+      const groupName = document.getElementById("newGroupName").value.trim();
+      if (!groupName) {
+        alert("Vui lòng nhập tên nhóm!");
+        return;
+      }
+      db.ref("accounts/" + groupName).set([]).then(() => {
+        loadGroups();
+        toggleAddGroupForm();
+        alert("Đã tạo nhóm mới: " + groupName);
+      }).catch(() => {
+        alert("Lỗi khi tạo nhóm!");
+      });
+    }
+
+    // Toggle form for adding a new account (manual input)
+    function toggleAddAccountForm() {
+      const form = document.getElementById("addAccountForm");
+      form.style.display = form.style.display === "block" ? "none" : "block";
+      document.getElementById("newUser").value = "";
+      document.getElementById("newPassword").value = "";
+      document.getElementById("newEmail").value = "";
+      document.getElementById("newRefreshToken").value = "";
+      document.getElementById("newClientId").value = "";
+    }
+
+    // Toggle form for adding a new account (line input)
+    function toggleAddAccountLineForm() {
+      const form = document.getElementById("addAccountLineForm");
+      form.style.display = form.style.display === "block" ? "none" : "block";
+      document.getElementById("accountLine").value = "";
+    }
+
+    // Add a new account (manual input)
+    function addAccount() {
+      const group = document.getElementById("groupSelect").value;
+      if (!group) {
+        alert("Vui lòng chọn một nhóm trước!");
+        return;
+      }
+      const user = document.getElementById("newUser").value.trim();
+      const password = document.getElementById("newPassword").value.trim();
+      const email = document.getElementById("newEmail").value.trim();
+      const refreshToken = document.getElementById("newRefreshToken").value.trim();
+      const clientId = document.getElementById("newClientId").value.trim();
+
+      if (!user || !password || !email || !refreshToken || !clientId) {
+        alert("Vui lòng nhập đầy đủ thông tin tài khoản!");
+        return;
+      }
+
+      const accountString = `${user}|${password}|${email}||${refreshToken}|${clientId}`;
+      db.ref("accounts/" + group).once("value").then(snapshot => {
+        const list = snapshot.val() || [];
+        list.push(accountString);
+        db.ref("accounts/" + group).set(list).then(() => {
+          changeGroup();
+          toggleAddAccountForm();
+          alert("Đã thêm tài khoản vào nhóm: " + group);
+        }).catch(() => {
+          alert("Lỗi khi thêm tài khoản!");
+        });
+      });
+    }
+
+    // Add a new account from a single line
+    function addAccountFromLine() {
+      const group = document.getElementById("groupSelect").value;
+      if (!group) {
+        alert("Vui lòng chọn một nhóm trước!");
+        return;
+      }
+      const accountLine = document.getElementById("accountLine").value.trim();
+      if (!accountLine) {
+        alert("Vui lòng dán thông tin tài khoản!");
+        return;
+      }
+
+      const parts = accountLine.split("|");
+      if (parts.length < 6) {
+        alert("Định dạng không hợp lệ! Cần ít nhất 6 phần (user|password|email||refresh_token|client_id)");
+        return;
+      }
+
+      const user = parts[0];
+      const password = parts[1];
+      const email = parts[2];
+      const refreshToken = parts[4];
+      const clientId = parts[5];
+
+      if (!user || !password || !email || !refreshToken || !clientId) {
+        alert("Thông tin tài khoản không đầy đủ!");
+        return;
+      }
+
+      const accountString = `${user}|${password}|${email}||${refreshToken}|${clientId}`;
+      db.ref("accounts/" + group).once("value").then(snapshot => {
+        const list = snapshot.val() || [];
+        list.push(accountString);
+        db.ref("accounts/" + group).set(list).then(() => {
+          changeGroup();
+          toggleAddAccountLineForm();
+          alert("Đã thêm tài khoản vào nhóm: " + group);
+        }).catch(() => {
+          alert("Lỗi khi thêm tài khoản!");
+        });
+      });
     }
 
     loadGroups();
