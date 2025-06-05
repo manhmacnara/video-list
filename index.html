@@ -2,28 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Account OTP Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f5f5f5;
+      margin: 0;
       padding: 10px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     h2 {
-      margin-bottom: 10px;
+      font-size: 1.5rem;
+      margin: 0 0 15px;
+      color: #333;
+      text-align: center;
     }
-    textarea, select, input, button {
-      font-size: 14px;
-      margin-top: 8px;
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .select-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    select, button {
+      flex: 1;
+      font-size: 1rem;
       padding: 10px;
-      box-sizing: border-box;
+      border: none;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
     button {
       background-color: #007bff;
       color: white;
-      border: none;
-      border-radius: 6px;
+      cursor: pointer;
+      min-width: 120px;
     }
     button:hover {
       background-color: #0056b3;
@@ -32,7 +53,7 @@
       background: white;
       padding: 15px;
       border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       margin-top: 15px;
     }
     .field {
@@ -40,8 +61,8 @@
     }
     .label {
       font-weight: bold;
-      margin-bottom: 6px;
-      display: block;
+      margin-bottom: 5px;
+      color: #444;
     }
     .field-content {
       display: flex;
@@ -52,9 +73,9 @@
       background: #eee;
       padding: 8px;
       border-radius: 5px;
-      word-break: break-word;
       flex: 1;
       min-width: 0;
+      word-break: break-word;
     }
     .copy-btn {
       background-color: #28a745;
@@ -62,8 +83,9 @@
       border: none;
       padding: 8px;
       border-radius: 6px;
-      width: 100px;
+      width: 90px;
       white-space: nowrap;
+      font-size: 0.9rem;
     }
     .copy-btn:hover {
       background-color: #1e7e34;
@@ -72,104 +94,132 @@
       margin-top: 10px;
       display: none;
     }
-    .form-container input, .form-container textarea {
+    .form-container input,
+    .form-container textarea {
       width: 100%;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-sizing: border-box;
     }
     .form-container button {
       margin-top: 5px;
     }
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #28a745;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s ease;
-      z-index: 9999;
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
     }
-    .toast.show {
-      opacity: 1;
-      pointer-events: auto;
+    button.secondary {
+      background-color: #dc3545;
+    }
+    button.secondary:hover {
+      background-color: #c82333;
+    }
+    @media (max-width: 480px) {
+      .select-group {
+        flex-direction: column;
+      }
+      select, button {
+        width: 100%;
+      }
+      .field-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+      }
+      .copy-btn {
+        width: 100%;
+      }
+      .action-buttons {
+        flex-direction: column;
+      }
+      button {
+        min-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Account OTP Dashboard</h2>
 
-  <h2>Account OTP Dashboard</h2>
-
-  <label for="groupSelect">🔖 Nhóm SD:</label>
-  <select id="groupSelect" onchange="changeGroup()"></select>
-  <button onclick="toggleAddGroupForm()">➕ Thêm nhóm</button>
-
-  <div id="addGroupForm" class="form-container">
-    <input type="text" id="newGroupName" placeholder="Tên nhóm mới" />
-    <button onclick="addGroup()">Tạo nhóm</button>
-    <button onclick="toggleAddGroupForm()">Hủy</button>
-  </div>
-
-  <label for="accountSelect">📋 Chọn TK:</label>
-  <select id="accountSelect" onchange="changeAccount()"></select>
-  <button onclick="toggleAddAccountForm()">➕ TK Khác</button>
-  <button onclick="toggleAddAccountLineForm()">➕ Thêm TK</button>
-
-  <div id="addAccountForm" class="form-container">
-    <input type="text" id="newUser" placeholder="User (tùy chọn)" />
-    <input type="email" id="newEmail" placeholder="Email (tùy chọn)" />
-    <button onclick="addAccount()">Thêm</button>
-    <button onclick="toggleAddAccountForm()">Hủy</button>
-  </div>
-
-  <div id="addAccountLineForm" class="form-container">
-    <textarea id="accountLine" placeholder="Dán dòng tài khoản (VD: user|password|email||refresh_token|client_id)" rows="2"></textarea>
-    <button onclick="addAccountFromLine()">Thêm</button>
-    <button onclick="toggleAddAccountLineForm()">Hủy</button>
-  </div>
-
-  <div class="account-box" id="accountInfo" style="display:none">
-    <div class="field">
-      <div class="label">User:</div>
-      <div class="field-content">
-        <div class="value" id="user"></div>
-        <button class="copy-btn" onclick="copy('user')">📋 Sao chép</button>
-      </div>
-    </div>
-    <div class="field">
-      <div class="label">Password:</div>
-      <div class="field-content">
-        <div class="value" id="password"></div>
-        <button class="copy-btn" onclick="copy('password')">📋 Sao chép</button>
-      </div>
-    </div>
-    <div class="field">
-      <div class="label">Email:</div>
-      <div class="field-content">
-        <div class="value" id="email"></div>
-        <button class="copy-btn" onclick="copy('email')">📋 Sao chép</button>
-      </div>
-    </div>
-    <div class="field">
-      <div class="label">OTP:</div>
-      <div class="field-content">
-        <div class="value" id="otp_result">Đang tải...</div>
-        <button class="copy-btn" onclick="copy('otp_result')">📋 Sao chép</button>
-      </div>
+    <div class="select-group">
+      <label for="groupSelect">🔖 Nhóm SD:</label>
+      <select id="groupSelect" onchange="changeGroup()">
+        <option value="">Chọn nhóm</option>
+      </select>
+      <button onclick="toggleAddGroupForm()">➕ Thêm nhóm</button>
     </div>
 
-    <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">Chưa có</span></p>
-    <button onclick="getOtp()">📩 Lấy OTP</button>
-    <button onclick="deleteSelectedAccount()">🗑️ Xóa tài khoản này</button>
-    <button onclick="deleteAllAccounts()">🔥 Xóa tất cả tài khoản</button>
-  </div>
+    <div class="select-group">
+      <label for="accountSelect">📋 Chọn TK:</label>
+      <select id="accountSelect" onchange="changeAccount()">
+        <option value="">Chọn tài khoản</option>
+      </select>
+      <button onclick="toggleAddAccountForm()">➕ Thêm TK</button>
+      <button onclick="toggleAddAccountLineForm()">📋 Thêm 1 dòng</button>
+    </div>
 
-  <!-- Toast notification -->
-  <div id="toast" class="toast">Đã sao chép!</div>
+    <div id="addGroupForm" class="form-container">
+      <input type="text" id="newGroupName" placeholder="Tên nhóm mới" />
+      <button onclick="addGroup()">Tạo nhóm</button>
+      <button onclick="toggleAddGroupForm()">Hủy</button>
+    </div>
+
+    <div id="addAccountForm" class="form-container">
+      <input type="text" id="newUser" placeholder="User" />
+      <input type="text" id="newPassword" placeholder="Password" />
+      <input type="email" id="newEmail" placeholder="Email" />
+      <input type="text" id="newRefreshToken" placeholder="Refresh Token" />
+      <input type="text" id="newClientId" placeholder="Client ID" />
+      <button onclick="addAccount()">Thêm</button>
+      <button onclick="toggleAddAccountForm()">Hủy</button>
+    </div>
+
+    <div id="addAccountLineForm" class="form-container">
+      <textarea id="accountLine" placeholder="Dán dòng (VD: user|password|email||refresh_token|client_id)" rows="3"></textarea>
+      <button onclick="addAccountFromLine()">Thêm</button>
+      <button onclick="toggleAddAccountLineForm()">Hủy</button>
+    </div>
+
+    <div class="account-box" id="accountInfo" style="display:none">
+      <div class="field">
+        <div class="label">User:</div>
+        <div class="field-content">
+          <div class="value" id="user"></div>
+          <button class="copy-btn" onclick="copy('user')">Sao chép</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">Password:</div>
+        <div class="field-content">
+          <div class="value" id="password"></div>
+          <button class="copy-btn" onclick="copy('password')">Sao chép</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">Email:</div>
+        <div class="field-content">
+          <div class="value" id="email"></div>
+          <button class="copy-btn" onclick="copy('email')">Sao chép</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">OTP:</div>
+        <div class="field-content">
+          <div class="value" id="otp_result">Đang tải...</div>
+          <button class="copy-btn" onclick="copy('otp_result')">Sao chép</button>
+        </div>
+      </div>
+      <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">Chưa có</span></p>
+      <div class="action-buttons">
+        <button onclick="getOtp()">📩 Lấy OTP</button>
+        <button class="secondary" onclick="deleteAccount()">🗑 Xóa TK này</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -195,19 +245,16 @@
       db.ref("accounts").once("value").then(snapshot => {
         const groups = snapshot.val() || {};
         const groupSelect = document.getElementById("groupSelect");
-        groupSelect.innerHTML = "";
+        groupSelect.innerHTML = '<option value="">Chọn nhóm</option>';
         for (const group in groups) {
           const option = document.createElement("option");
           option.value = group;
           option.textContent = group;
           groupSelect.appendChild(option);
         }
-        if (groupSelect.options.length > 0) {
+        if (groupSelect.options.length > 1) {
           changeGroup();
         }
-      }).catch(error => {
-        console.error("Lỗi khi tải nhóm:", error);
-        alert("Lỗi khi tải danh sách nhóm: " + error.message);
       });
     }
 
@@ -216,7 +263,7 @@
       db.ref("accounts/" + group).once("value").then(snapshot => {
         const list = snapshot.val();
         const accountSelect = document.getElementById("accountSelect");
-        accountSelect.innerHTML = "";
+        accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
         if (Array.isArray(list)) {
           list.forEach((acc, i) => {
             const email = acc.split("|")[2] || "";
@@ -231,50 +278,6 @@
             document.getElementById("accountInfo").style.display = "none";
           }
         }
-      }).catch(error => {
-        console.error("Lỗi khi tải tài khoản:", error);
-        alert("Lỗi khi tải danh sách tài khoản: " + error.message);
-      });
-    }
-
-    function deleteSelectedAccount() {
-      const group = document.getElementById("groupSelect").value;
-      const index = parseInt(document.getElementById("accountSelect").value);
-      if (!group || isNaN(index)) {
-        alert("Không tìm thấy tài khoản để xóa!");
-        return;
-      }
-
-      if (!confirm("Bạn có chắc muốn xóa tài khoản này?")) return;
-
-      db.ref("accounts/" + group).once("value").then(snapshot => {
-        const list = snapshot.val() || [];
-        if (index >= 0 && index < list.length) {
-          list.splice(index, 1);
-          db.ref("accounts/" + group).set(list).then(() => {
-            alert("Đã xóa tài khoản.");
-            changeGroup();
-          }).catch(error => {
-            alert("Lỗi khi xóa tài khoản: " + error.message);
-          });
-        }
-      });
-    }
-
-    function deleteAllAccounts() {
-      const group = document.getElementById("groupSelect").value;
-      if (!group) {
-        alert("Chưa chọn nhóm!");
-        return;
-      }
-
-      if (!confirm("Bạn có chắc muốn xóa toàn bộ tài khoản trong nhóm này?")) return;
-
-      db.ref("accounts/" + group).set([]).then(() => {
-        alert("Đã xóa toàn bộ tài khoản.");
-        changeGroup();
-      }).catch(error => {
-        alert("Lỗi khi xóa tất cả tài khoản: " + error.message);
       });
     }
 
@@ -286,9 +289,6 @@
         if (Array.isArray(list) && index >= 0 && index < list.length) {
           updateAccountInfo(list[index]);
         }
-      }).catch(error => {
-        console.error("Lỗi khi thay đổi tài khoản:", error);
-        alert("Lỗi khi tải tài khoản: " + error.message);
       });
     }
 
@@ -315,8 +315,6 @@
         } else {
           document.getElementById("lastOtpTime").textContent = "Chưa có";
         }
-      }).catch(error => {
-        console.error("Lỗi khi tải thời gian OTP:", error);
       });
     }
 
@@ -348,104 +346,62 @@
       });
     }
 
-    function showToast(message = "Đã sao chép!") {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.classList.add("show");
-      setTimeout(() => {
-        toast.classList.remove("show");
-      }, 2000);
-    }
-
     function copy(id) {
       const text = document.getElementById(id).textContent;
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text)
-          .then(() => showToast())
-          .catch(() => fallbackCopy(text));
-      } else {
-        fallbackCopy(text);
-      }
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Đã sao chép!");
+      });
     }
 
-    function fallbackCopy(text) {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "absolute";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        const successful = document.execCommand("copy");
-        if (successful) {
-          showToast();
-        } else {
-          showToast("Không thể sao chép");
-        }
-      } catch (err) {
-        showToast("Thiết bị không hỗ trợ sao chép");
-      }
-      document.body.removeChild(textarea);
-    }
-
-    // Toggle form for adding a new group
     function toggleAddGroupForm() {
       const form = document.getElementById("addGroupForm");
       form.style.display = form.style.display === "block" ? "none" : "block";
       document.getElementById("newGroupName").value = "";
     }
 
-    // Add a new group
     function addGroup() {
       const groupName = document.getElementById("newGroupName").value.trim();
       if (!groupName) {
         alert("Vui lòng nhập tên nhóm!");
         return;
       }
-      const invalidChars = /[.#$/\[\]]/;
-      if (invalidChars.test(groupName)) {
-        alert("Tên nhóm không được chứa các ký tự: . # $ [ ] /");
-        return;
-      }
-
-      console.log("Đang tạo nhóm:", groupName);
-      // Chỉ tạo nhóm trong accounts
       db.ref("accounts/" + groupName).set([]).then(() => {
         loadGroups();
         toggleAddGroupForm();
         alert("Đã tạo nhóm mới: " + groupName);
-      }).catch((error) => {
-        console.error("Lỗi Firebase:", error);
-        alert("Lỗi khi tạo nhóm: " + error.message);
+      }).catch(() => {
+        alert("Lỗi khi tạo nhóm!");
       });
     }
 
-    // Toggle form for adding a new account (manual input)
     function toggleAddAccountForm() {
       const form = document.getElementById("addAccountForm");
       form.style.display = form.style.display === "block" ? "none" : "block";
       document.getElementById("newUser").value = "";
+      document.getElementById("newPassword").value = "";
       document.getElementById("newEmail").value = "";
+      document.getElementById("newRefreshToken").value = "";
+      document.getElementById("newClientId").value = "";
     }
 
-    // Add a new account (manual input)
     function addAccount() {
       const group = document.getElementById("groupSelect").value;
       if (!group) {
         alert("Vui lòng chọn một nhóm trước!");
         return;
       }
-
       const user = document.getElementById("newUser").value.trim();
+      const password = document.getElementById("newPassword").value.trim();
       const email = document.getElementById("newEmail").value.trim();
+      const refreshToken = document.getElementById("newRefreshToken").value.trim();
+      const clientId = document.getElementById("newClientId").value.trim();
 
-      if (!user && !email) {
-        alert("Vui lòng nhập ít nhất User hoặc Email!");
+      if (!user || !password || !email || !refreshToken || !clientId) {
+        alert("Vui lòng nhập đầy đủ thông tin tài khoản!");
         return;
       }
 
-      const accountString = `${user}| |${email}|| | `;
+      const accountString = `${user}|${password}|${email}||${refreshToken}|${clientId}`;
       db.ref("accounts/" + group).once("value").then(snapshot => {
         const list = snapshot.val() || [];
         list.push(accountString);
@@ -459,14 +415,12 @@
       });
     }
 
-    // Toggle form for adding a new account (line input)
     function toggleAddAccountLineForm() {
       const form = document.getElementById("addAccountLineForm");
       form.style.display = form.style.display === "block" ? "none" : "block";
       document.getElementById("accountLine").value = "";
     }
 
-    // Add a new account from a single line
     function addAccountFromLine() {
       const group = document.getElementById("groupSelect").value;
       if (!group) {
@@ -508,6 +462,29 @@
           alert("Lỗi khi thêm tài khoản!");
         });
       });
+    }
+
+    function deleteAccount() {
+      const group = document.getElementById("groupSelect").value;
+      const index = document.getElementById("accountSelect").value;
+      if (!group || index === "") {
+        alert("Vui lòng chọn tài khoản để xóa!");
+        return;
+      }
+      if (confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) {
+        db.ref("accounts/" + group).once("value").then(snapshot => {
+          const list = snapshot.val() || [];
+          if (Array.isArray(list) && index >= 0 && index < list.length) {
+            list.splice(index, 1);
+            db.ref("accounts/" + group).set(list).then(() => {
+              changeGroup();
+              alert("Đã xóa tài khoản!");
+            }).catch(() => {
+              alert("Lỗi khi xóa tài khoản!");
+            });
+          }
+        });
+      }
     }
 
     loadGroups();
