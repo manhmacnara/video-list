@@ -1,63 +1,42 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Account OTP Dashboard (Theo nhóm)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Account OTP Dashboard (Multi Group)</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 10px; background: #f9f9f9; }
-    textarea, select, button {
-      font-size: 14px; width: 100%; margin-top: 8px; padding: 8px; box-sizing: border-box;
+    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 10px; }
+    input, textarea, select, button {
+      width: 100%; padding: 8px; margin-top: 10px;
+      box-sizing: border-box; font-size: 14px;
     }
     button {
-      background-color: #007bff; color: white; border: none; border-radius: 6px;
+      background: #007bff; color: white; border: none; border-radius: 6px;
     }
-    button:hover { background-color: #0056b3; }
-    .account-box {
-      background: white; padding: 10px; border-radius: 8px; margin-top: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .info-row { display: flex; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-    .info-label { font-weight: bold; min-width: 70px; margin-right: 5px; }
-    .info-value {
-      background: #eee; padding: 4px; border-radius: 5px; flex-grow: 1;
-      word-break: break-word; font-size: 14px;
-    }
+    button:hover { background: #0056b3; }
+    h2 { margin-bottom: 10px; }
   </style>
 </head>
 <body>
-
   <h2>Account OTP Dashboard (Theo nhóm)</h2>
 
-  <label for="accountGroup">🔘 Chọn nhóm:</label>
-  <select id="accountGroup">
-    <option value="accounts1">accounts1</option>
-    <option value="accounts2">accounts2</option>
-    <option value="accounts3">accounts3</option>
-  </select>
+  <label for="groupName">🔖 Nhập tên nhóm (ví dụ: accounts1)</label>
+  <input type="text" id="groupName" placeholder="accounts1" />
 
   <textarea id="accountInput" rows="6" placeholder="user|pass|email|... mỗi dòng 1 tài khoản"></textarea>
   <button onclick="saveAccounts()">💾 Lưu tài khoản</button>
-  <button onclick="deleteAccounts()">🗑 Xóa toàn bộ tài khoản</button>
-  <button onclick="deleteSelectedAccounts()">🗑 Xóa tài khoản đã chọn</button>
+  <button onclick="fetchAccounts()">📥 Tải lại nhóm</button>
+  <button onclick="deleteAccounts()">🗑 Xoá toàn bộ nhóm</button>
 
-  <label for="accountSelect">Chọn tài khoản:</label>
+  <label for="accountSelect">📋 Chọn tài khoản đã lưu:</label>
   <select id="accountSelect" multiple></select>
-
-  <div class="account-box" id="accountInfo" style="display:none">
-    <div class="info-row"><div class="info-label">User:</div><div class="info-value" id="user"></div></div>
-    <div class="info-row"><div class="info-label">Password:</div><div class="info-value" id="password"></div></div>
-    <div class="info-row"><div class="info-label">Email:</div><div class="info-value" id="email"></div></div>
-    <div class="info-row"><div class="info-label">OTP:</div><div class="info-value" id="otp_result"></div></div>
-    <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime"></span></p>
-    <button onclick="getOtp()">📩 Lấy OTP</button>
-  </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAlmrhQkbhMXctil8crZ6GftfH9wAcKA",
       authDomain: "acctiktok-34c22.firebaseapp.com",
@@ -70,168 +49,73 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function getCurrentGroup() {
-      return document.getElementById("accountGroup").value;
+    // Helper để lấy tên nhóm
+    function getGroupName() {
+      const name = document.getElementById("groupName").value.trim();
+      if (!name) {
+        alert("Vui lòng nhập tên nhóm (ví dụ: accounts1)");
+        throw new Error("Tên nhóm rỗng");
+      }
+      return name;
     }
 
-    function sanitizeEmail(email) {
-      return email.replace(/[@.]/g, match => match === '@' ? '-at-' : '-dot-');
-    }
-
+    // Lưu tài khoản vào nhóm
     function saveAccounts() {
+      const group = getGroupName();
       const input = document.getElementById("accountInput").value.trim();
-      const group = getCurrentGroup();
       if (!input) return;
 
-      const newLines = input.split("\n").filter(line => line.includes("|"));
+      const lines = input.split("\n").filter(line => line.includes("|"));
       db.ref(group).once("value").then(snapshot => {
-        let currentList = snapshot.val();
-        if (!Array.isArray(currentList)) currentList = [];
-        const updatedList = currentList.concat(newLines);
-        db.ref(group).set(updatedList).then(() => {
-          alert("Đã thêm tài khoản vào " + group);
-          sessionStorage.setItem("accounts", updatedList.join("\n"));
-          processAccounts(updatedList.join("\n"));
-          document.getElementById("accountInput").value = "";
+        let current = snapshot.val();
+        if (!Array.isArray(current)) current = [];
+        const updated = current.concat(lines);
+        db.ref(group).set(updated).then(() => {
+          alert("Đã lưu vào nhóm: " + group);
+          processAccounts(updated);
         });
       });
     }
 
+    // Tải tài khoản từ nhóm
     function fetchAccounts() {
-      const group = getCurrentGroup();
+      const group = getGroupName();
       db.ref(group).once("value").then(snapshot => {
         const data = snapshot.val();
         if (Array.isArray(data)) {
-          const joined = data.join("\n");
-          sessionStorage.setItem("accounts", joined);
-          processAccounts(joined);
+          document.getElementById("accountInput").value = data.join("\n");
+          processAccounts(data);
         } else {
-          sessionStorage.removeItem("accounts");
-          localStorage.removeItem("accounts");
+          alert("Nhóm chưa có dữ liệu.");
+          document.getElementById("accountInput").value = "";
           document.getElementById("accountSelect").innerHTML = "";
-          document.getElementById("accountInfo").style.display = "none";
         }
       });
     }
 
+    // Xoá toàn bộ nhóm
     function deleteAccounts() {
-      const group = getCurrentGroup();
-      if (!confirm("Bạn có chắc muốn xóa tất cả tài khoản trong " + group + "?")) return;
+      const group = getGroupName();
+      if (!confirm("Bạn có chắc muốn xoá nhóm '" + group + "' không?")) return;
       db.ref(group).remove().then(() => {
-        alert("Đã xóa toàn bộ!");
-        sessionStorage.removeItem("accounts");
-        localStorage.removeItem("accounts");
+        alert("Đã xoá nhóm " + group);
+        document.getElementById("accountInput").value = "";
         document.getElementById("accountSelect").innerHTML = "";
-        document.getElementById("accountInfo").style.display = "none";
       });
     }
 
-    function deleteSelectedAccounts() {
-      const group = getCurrentGroup();
-      const select = document.getElementById("accountSelect");
-      const selectedIndexes = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
-      if (!selectedIndexes.length) return alert("Chọn tài khoản để xóa!");
-      if (!confirm("Bạn chắc chắn muốn xóa tài khoản đã chọn?")) return;
-      db.ref(group).once("value").then(snapshot => {
-        let list = snapshot.val() || [];
-        const newList = list.filter((_, i) => !selectedIndexes.includes(i));
-        db.ref(group).set(newList).then(() => {
-          alert("Đã xóa!");
-          sessionStorage.setItem("accounts", newList.join("\n"));
-          processAccounts(newList.join("\n"));
-        });
-      });
-    }
-
-    function processAccounts(accountData) {
-      const accounts = accountData.split("\n").map(line => {
-        const [user, password, email, pass_mail, refresh_token, client_id] = line.split("|");
-        return { user, password, email, pass_mail, refresh_token, client_id };
-      }).filter(acc => acc.email);
-      localStorage.setItem("accounts", JSON.stringify(accounts));
-      loadAccounts();
-    }
-
-    function loadAccounts() {
-      const accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
+    // Hiển thị tài khoản trong select box
+    function processAccounts(data) {
       const select = document.getElementById("accountSelect");
       select.innerHTML = "";
-      const selectedIndex = localStorage.getItem("selectedIndex") || 0;
-      accounts.forEach((acc, idx) => {
+      data.forEach((line, index) => {
+        const [user, pass, email] = line.split("|");
         const option = document.createElement("option");
-        option.value = idx;
-        option.textContent = `#${idx + 1} - ${acc.email}`;
+        option.value = index;
+        option.textContent = `#${index + 1} - ${email || "Không có email"}`;
         select.appendChild(option);
       });
-      select.selectedIndex = selectedIndex;
-      updateAccountInfo(selectedIndex);
     }
-
-    function updateAccountInfo(index) {
-      const accounts = JSON.parse(localStorage.getItem("accounts"));
-      const acc = accounts[index];
-      if (!acc) return;
-      const sanitizedEmail = sanitizeEmail(acc.email);
-      document.getElementById("user").textContent = acc.user;
-      document.getElementById("password").textContent = acc.password;
-      document.getElementById("email").textContent = acc.email;
-      document.getElementById("accountInfo").style.display = "block";
-      window.currentAccount = acc;
-      localStorage.setItem("selectedIndex", index);
-      displayLastOtpTime(sanitizedEmail);
-    }
-
-    function displayLastOtpTime(sanitizedEmail) {
-      const timeElement = document.getElementById("lastOtpTime");
-      db.ref(`otpTimestamps/${sanitizedEmail}`).once("value").then(snapshot => {
-        const data = snapshot.val();
-        if (data && data.lastOtpTime) {
-          timeElement.textContent = new Date(data.lastOtpTime).toLocaleString();
-        } else {
-          timeElement.textContent = "Chưa có thông tin OTP.";
-        }
-      });
-    }
-
-    function getOtp() {
-      const acc = window.currentAccount;
-      if (!acc) return;
-      const sanitizedEmail = sanitizeEmail(acc.email);
-      fetch("https://tool.unlimitmail.com/api/get_code_oauth2", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "tiktok",
-          email: acc.email,
-          refresh_token: acc.refresh_token,
-          client_id: acc.client_id
-        })
-      })
-      .then(res => res.json())
-      .then(result => {
-        document.getElementById("otp_result").textContent = result.code || "Không nhận được OTP";
-        const timestamp = new Date().toISOString();
-        db.ref(`otpTimestamps/${sanitizedEmail}`).update({
-          lastOtpTime: timestamp,
-          otpCode: result.code || "Không nhận được OTP"
-        });
-        localStorage.setItem(`lastOtpTime_${sanitizedEmail}`, timestamp);
-        displayLastOtpTime(sanitizedEmail);
-        loadAccounts();
-      })
-      .catch(() => {
-        document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
-      });
-    }
-
-    document.getElementById("accountSelect").addEventListener("change", e => {
-      updateAccountInfo(e.target.value);
-    });
-
-    document.getElementById("accountGroup").addEventListener("change", fetchAccounts);
-
-    fetchAccounts();
   </script>
-
 </body>
 </html>
