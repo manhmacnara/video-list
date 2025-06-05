@@ -5,21 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Account OTP Dashboard (Grouped)</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 10px; background: #f9f9f9; }
-    textarea, select, button, input[type="text"] {
-      font-size: 14px; width: 100%; margin-top: 8px; padding: 8px; box-sizing: border-box;
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      max-width: 100%;
+      background: #f9f9f9;
     }
-    button { background-color: #007bff; color: white; border: none; border-radius: 6px; }
-    button:hover { background-color: #0056b3; }
+    textarea, select, button, input[type="text"] {
+      font-size: 14px;
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
     .account-box {
-      background: white; padding: 10px; border-radius: 8px; margin-top: 15px;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .info-row { display: flex; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-    .info-label { font-weight: bold; margin-right: 5px; min-width: 70px; }
+    .info-row {
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .info-label {
+      font-weight: bold;
+      margin-right: 5px;
+      min-width: 70px;
+    }
     .info-value {
-      background: #eee; padding: 4px; border-radius: 5px; flex-grow: 1;
-      word-break: break-word; font-size: 14px;
+      background: #eee;
+      padding: 4px;
+      border-radius: 5px;
+      flex-grow: 1;
+      word-break: break-word;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -41,10 +73,22 @@
   <select id="accountSelect" multiple></select>
 
   <div class="account-box" id="accountInfo" style="display:none">
-    <div class="info-row"><div class="info-label">User:</div><div class="info-value" id="user"></div></div>
-    <div class="info-row"><div class="info-label">Password:</div><div class="info-value" id="password"></div></div>
-    <div class="info-row"><div class="info-label">Email:</div><div class="info-value" id="email"></div></div>
-    <div class="info-row"><div class="info-label">OTP:</div><div class="info-value" id="otp_result"></div></div>
+    <div class="info-row">
+      <div class="info-label">User:</div>
+      <div class="info-value" id="user"></div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">Password:</div>
+      <div class="info-value" id="password"></div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">Email:</div>
+      <div class="info-value" id="email"></div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">OTP:</div>
+      <div class="info-value" id="otp_result"></div>
+    </div>
     <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime"></span></p>
     <button onclick="getOtp()">📩 Lấy OTP</button>
   </div>
@@ -73,39 +117,25 @@
       if (!name) return alert("Nhập tên nhóm!");
       db.ref("groups/" + name).set([]).then(() => {
         alert("Đã tạo nhóm: " + name);
-        loadGroups(name); // ← Gọi lại để hiện lên UI
-        document.getElementById("groupName").value = ""; // ← Xoá tên sau khi tạo
+        loadGroups(name);
       });
     }
+
     function loadGroups(selectName = "") {
       db.ref("groups").once("value").then(snapshot => {
         const groups = snapshot.val() || {};
         const select = document.getElementById("groupSelect");
         select.innerHTML = "";
-
         for (const name in groups) {
           const option = document.createElement("option");
           option.value = name;
           option.textContent = name;
           select.appendChild(option);
         }
-
-        // Nếu vừa tạo nhóm, đặt nhóm mới là nhóm đang sử dụng
-        if (selectName && groups[selectName]) {
-          select.value = selectName;
-          sessionStorage.setItem("currentGroup", selectName);
-        }
-
-        // Nếu có nhóm, thực hiện load dữ liệu
-        if (select.options.length > 0) {
-          if (!sessionStorage.getItem("currentGroup")) {
-            sessionStorage.setItem("currentGroup", select.value); // đặt mặc định nhóm đầu tiên
-          }
-          changeGroup();
-        }
+        if (selectName) select.value = selectName;
+        changeGroup();
       });
     }
-
 
     function changeGroup() {
       const group = document.getElementById("groupSelect").value;
@@ -219,7 +249,7 @@
         const accountData = snapshot.val();
         if (accountData && accountData.lastOtpTime) {
           const lastOtpTime = accountData.lastOtpTime;
-          timeElement.textContent = new Date(lastOtpTime).toLocaleString();
+          timeElement.textContent = `Lần lấy OTP gần nhất: ${new Date(lastOtpTime).toLocaleString()}`;
         } else {
           timeElement.textContent = "Chưa có thông tin OTP.";
         }
