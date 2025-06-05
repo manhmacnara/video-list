@@ -63,7 +63,7 @@
     function createGroup() {
       const name = document.getElementById("groupName").value.trim();
       if (!name) return alert("Nhập tên nhóm!");
-      db.ref("groups/" + name).set([]).then(() => {
+      db.ref("accounts/" + groupName).set([]).then(() => {
         alert("Đã tạo nhóm: " + name);
         loadGroups(name);
       });
