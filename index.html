@@ -115,9 +115,13 @@
     function createGroup() {
       const name = document.getElementById("groupName").value.trim();
       if (!name) return alert("Nhập tên nhóm!");
+
       db.ref("groups/" + name).set([]).then(() => {
         alert("Đã tạo nhóm: " + name);
         loadGroups(name);
+      }).catch(error => {
+        console.error("Lỗi tạo nhóm:", error);
+        alert("Lỗi khi tạo nhóm: " + error.message);
       });
     }
 
