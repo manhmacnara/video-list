@@ -6,40 +6,30 @@
   <title>Account OTP Dashboard (Grouped)</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; background: #f9f9f9; }
-    input, select, textarea, button {
-      width: 100%; font-size: 14px; margin-top: 8px; padding: 8px; box-sizing: border-box;
+    textarea, select, button, input[type="text"] {
+      font-size: 14px; width: 100%; margin-top: 8px; padding: 8px; box-sizing: border-box;
     }
-    button {
-      background: #007bff; color: white; border: none; border-radius: 4px;
-    }
-    button:hover { background: #0056b3; }
-    select[multiple] { height: 120px; }
-    .section { margin-top: 20px; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    button { background-color: #007bff; color: white; border: none; border-radius: 6px; }
+    button:hover { background-color: #0056b3; }
   </style>
 </head>
 <body>
   <h2>Account OTP Dashboard (Grouped)</h2>
 
-  <div class="section">
-    <label><b>📌 Nhập tên nhóm (ví dụ: accounts1)</b></label>
-    <input type="text" id="groupName" placeholder="accounts1">
-    <button onclick="createGroup()">➕ Tạo nhóm</button>
+  <label>🖊 Nhập tên nhóm (ví dụ: accounts1)</label>
+  <input type="text" id="groupName" placeholder="accounts1" />
+  <button onclick="createGroup()">➕ Tạo nhóm</button>
 
-    <label><b>📁 Nhóm đang sử dụng:</b></label>
-    <select id="groupSelect" onchange="changeGroup()"></select>
-  </div>
+  <label>Nhóm đang sử dụng:</label>
+  <select id="groupSelect" onchange="changeGroup()"></select>
 
-  <div class="section">
-    <textarea id="accountInput" rows="5" placeholder="user|pass|email|... mỗi dòng 1 tài khoản"></textarea>
-    <button onclick="saveAccounts()">💾 Lưu tài khoản</button>
-    <button onclick="deleteAccounts()">🗑 Xóa toàn bộ tài khoản</button>
-    <button onclick="deleteSelectedAccounts()">🗑 Xóa tài khoản đã chọn</button>
-  </div>
+  <textarea id="accountInput" rows="6" placeholder="user|pass|email|... mỗi dòng 1 tài khoản"></textarea>
+  <button onclick="saveAccounts()">💾 Lưu tài khoản</button>
+  <button onclick="deleteAccounts()">🗑 Xóa toàn bộ tài khoản</button>
+  <button onclick="deleteSelectedAccounts()">🗑 Xóa tài khoản đã chọn</button>
 
-  <div class="section">
-    <label><b>📋 Chọn tài khoản đã lưu:</b></label>
-    <select id="accountSelect" multiple></select>
-  </div>
+  <label>📋 Chọn tài khoản đã lưu:</label>
+  <select id="accountSelect" multiple></select>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -56,34 +46,28 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    window.onload = () => {
-      loadGroups();
-    };
-
     function createGroup() {
       const name = document.getElementById("groupName").value.trim();
       if (!name) return alert("Nhập tên nhóm!");
-      db.ref("accounts/" + groupName).set([]).then(() => {
+      db.ref("accounts/" + name).set([]).then(() => {
         alert("Đã tạo nhóm: " + name);
         loadGroups(name);
       });
     }
 
-    function loadGroups(selected = "") {
-      db.ref("groups").once("value").then(snapshot => {
+    function loadGroups(selectName = "") {
+      db.ref("accounts").once("value").then(snapshot => {
         const groups = snapshot.val() || {};
         const select = document.getElementById("groupSelect");
         select.innerHTML = "";
         for (const name in groups) {
-          const opt = document.createElement("option");
-          opt.value = name;
-          opt.textContent = name;
-          select.appendChild(opt);
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          select.appendChild(option);
         }
-        if (selected && groups[selected]) {
-          select.value = selected;
-        }
-        if (select.options.length > 0) changeGroup();
+        if (selectName && groups[selectName]) select.value = selectName;
+        changeGroup();
       });
     }
 
@@ -99,47 +83,50 @@
       if (!input) return;
       const group = sessionStorage.getItem("currentGroup");
       if (!group) return alert("Chọn nhóm trước!");
-      const lines = input.split("\n").filter(l => l.includes("|"));
-      db.ref("groups/" + group).once("value").then(snapshot => {
-        const current = snapshot.val() || [];
-        const updated = current.concat(lines);
-        db.ref("groups/" + group).set(updated).then(() => {
-          alert("Đã lưu tài khoản!");
-          document.getElementById("accountInput").value = "";
+      const newLines = input.split("\n").filter(line => line.includes("|"));
+      db.ref("accounts/" + group).once("value").then(snapshot => {
+        let list = snapshot.val();
+        if (!Array.isArray(list)) list = [];
+        const updated = list.concat(newLines);
+        db.ref("accounts/" + group).set(updated).then(() => {
+          alert("Đã lưu tài khoản");
           processAccounts(updated);
+          document.getElementById("accountInput").value = "";
+        });
+      });
+    }
+
+    function deleteAccounts() {
+      const group = sessionStorage.getItem("currentGroup");
+      if (!group || !confirm("Xóa toàn bộ tài khoản nhóm này?")) return;
+      db.ref("accounts/" + group).remove().then(() => {
+        alert("Đã xóa nhóm");
+        document.getElementById("accountSelect").innerHTML = "";
+      });
+    }
+
+    function deleteSelectedAccounts() {
+      const select = document.getElementById("accountSelect");
+      const selected = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
+      const group = sessionStorage.getItem("currentGroup");
+      if (!group || !selected.length) return alert("Chọn tài khoản cần xóa!");
+      db.ref("accounts/" + group).once("value").then(snapshot => {
+        let list = snapshot.val();
+        if (!Array.isArray(list)) return;
+        const newList = list.filter((_, i) => !selected.includes(i));
+        db.ref("accounts/" + group).set(newList).then(() => {
+          alert("Đã xóa tài khoản đã chọn");
+          processAccounts(newList);
         });
       });
     }
 
     function fetchAccounts() {
       const group = sessionStorage.getItem("currentGroup");
-      db.ref("groups/" + group).once("value").then(snapshot => {
-        const list = snapshot.val() || [];
-        processAccounts(list);
-      });
-    }
-
-    function deleteAccounts() {
-      const group = sessionStorage.getItem("currentGroup");
-      if (!group || !confirm("Bạn có chắc muốn xóa tất cả?")) return;
-      db.ref("groups/" + group).remove().then(() => {
-        alert("Đã xóa nhóm!");
-        document.getElementById("accountSelect").innerHTML = "";
-        loadGroups();
-      });
-    }
-
-    function deleteSelectedAccounts() {
-      const select = document.getElementById("accountSelect");
-      const indexes = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
-      const group = sessionStorage.getItem("currentGroup");
-      db.ref("groups/" + group).once("value").then(snapshot => {
-        const list = snapshot.val() || [];
-        const updated = list.filter((_, i) => !indexes.includes(i));
-        db.ref("groups/" + group).set(updated).then(() => {
-          alert("Đã xóa tài khoản đã chọn");
-          processAccounts(updated);
-        });
+      if (!group) return;
+      db.ref("accounts/" + group).once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (Array.isArray(data)) processAccounts(data);
       });
     }
 
@@ -147,12 +134,15 @@
       const select = document.getElementById("accountSelect");
       select.innerHTML = "";
       data.forEach((line, i) => {
+        const [user, pass, email] = line.split("|");
         const option = document.createElement("option");
         option.value = i;
-        option.textContent = line;
+        option.textContent = `#${i + 1} - ${email || user}`;
         select.appendChild(option);
       });
     }
+
+    loadGroups();
   </script>
 </body>
 </html>
