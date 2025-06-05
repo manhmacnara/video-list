@@ -277,11 +277,30 @@
 
     function copy(id) {
       const text = document.getElementById(id).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Đã sao chép!");
-      });
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert("Đã sao chép!");
+        }).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
     }
-
+    function fallbackCopy(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "absolute";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        alert("Đã sao chép!");
+      } catch (err) {
+        alert("Trình duyệt không hỗ trợ sao chép");
+      }
+      document.body.removeChild(textarea);
+    }
     // Toggle form for adding a new group
     function toggleAddGroupForm() {
       const form = document.getElementById("addGroupForm");
