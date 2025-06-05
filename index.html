@@ -68,6 +68,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: nowrap; /* Ngăn nút "Sao chép" xuống dòng */
     }
     .value {
       background: #eee;
@@ -76,6 +77,7 @@
       flex: 1;
       min-width: 0;
       word-break: break-word;
+      max-width: 70%; /* Giới hạn chiều rộng để nút "Sao chép" vừa */
     }
     .copy-btn {
       background-color: #28a745;
@@ -86,6 +88,7 @@
       width: 90px;
       white-space: nowrap;
       font-size: 0.9rem;
+      min-width: 90px; /* Đảm bảo nút không bị co nhỏ */
     }
     .copy-btn:hover {
       background-color: #1e7e34;
@@ -125,12 +128,16 @@
         width: 100%;
       }
       .field-content {
-        flex-direction: column;
+        flex-direction: row; /* Giữ hàng ngang nếu có thể */
         align-items: stretch;
         gap: 5px;
       }
+      .value {
+        max-width: 60%; /* Giảm chiều rộng trên điện thoại */
+      }
       .copy-btn {
-        width: 100%;
+        width: 100px; /* Đảm bảo nút đủ lớn để nhấn */
+        flex-shrink: 0; /* Ngăn nút bị co lại */
       }
       .action-buttons {
         flex-direction: column;
