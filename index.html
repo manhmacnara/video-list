@@ -46,12 +46,11 @@
       background: #fff;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-	select[multiple] {
-	  height: auto;
-	  max-height: 60px;
-	  overflow-y: auto;
-	}
-
+    select[multiple] {
+      height: auto;
+      max-height: 60px;
+      overflow-y: auto;
+    }
     .action-buttons {
       display: flex;
       gap: 5px;
@@ -205,11 +204,19 @@
         flex: 1;
         min-width: 0;
       }
+      .select-wrapper > div {
+        flex-direction: row;
+        gap: 5px;
+      }
     }
-	.field .label {
-	  display: none;
-	}
-
+    .select-wrapper > div {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+    .select-wrapper > div label {
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -218,10 +225,12 @@
 
     <div class="select-group">
       <div class="select-wrapper">
-        <label for="groupSelect">🔖 Nhóm SD:</label>
-        <select id="groupSelect" onchange="changeGroup()">
-          <option value="">Chọn nhóm</option>
-        </select>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+          <label for="groupSelect" style="font-weight: bold; color: #444;">🔖 Nhóm SD:</label>
+          <select id="groupSelect" onchange="changeGroup()" style="flex: 1;">
+            <option value="">Chọn nhóm</option>
+          </select>
+        </div>
       </div>
       <div class="action-buttons">
         <button onclick="toggleAddGroupForm()">➕ Nhóm</button>
@@ -245,19 +254,19 @@
       </div>
     </div>
 
-	<div class="select-group">
-	  <div class="select-wrapper">
-		<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-		  <label for="accountSelect" style="font-weight: bold; color: #444;">📋 Chọn TK:</label>
-		  <button onclick="deselectAllAccounts()" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 5px; background: #ddd; border: none; cursor: pointer;">Bỏ chọn</button>
-		</div>
-		<input type="text" id="accountSearch" placeholder="Tìm kiếm tài khoản..." oninput="filterAccounts()">
-		<select id="accountSelect" multiple onchange="changeAccount()">
-		  <option value="">Chọn tài khoản</option>
-		</select>
-		<p id="accountCount" style="margin-top: 5px; color: #666; font-size: 0.9rem;">Số tài khoản: 0</p>
-	  </div>
-	</div>
+    <div class="select-group">
+      <div class="select-wrapper">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+          <label for="accountSelect" style="font-weight: bold; color: #444;">📋 Chọn TK:</label>
+          <button onclick="deselectAllAccounts()" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 5px; background: #ddd; border: none; cursor: pointer;">Bỏ chọn</button>
+        </div>
+        <input type="text" id="accountSearch" placeholder="Tìm kiếm tài khoản..." oninput="filterAccounts()">
+        <select id="accountSelect" multiple onchange="changeAccount()">
+          <option value="">Chọn tài khoản</option>
+        </select>
+        <p id="accountCount" style="margin-top: 5px; color: #666; font-size: 0.9rem;">Số tài khoản: 0</p>
+      </div>
+    </div>
 
     <div id="addGroupForm" class="form-container">
       <input type="text" id="newGroupName" placeholder="Tên group..." />
@@ -361,37 +370,34 @@
       return email.replace(/[@.]/g, match => match === '@' ? '-at-' : '-dot-');
     }
 
+    function getEmailProvider(email) {
+      if (!email || !email.includes('@')) return null;
+      const domain = email.split('@')[1].toLowerCase();
+      if (['hotmail.com', 'outlook.com'].includes(domain)) return 'hotmail';
+      if (domain === 'gmail.com') return 'gmail';
+      return 'mailtm';
+    }
 
-	function getEmailProvider(email) {
-	  if (!email || !email.includes('@')) return null;
+    function loadGroups() {
+      db.ref("group_names").once("value").then(snapshot => {
+        const groupNames = snapshot.val() || {};
+        const groupSelect = document.getElementById("groupSelect");
+        groupSelect.innerHTML = '<option value="">Chọn nhóm</option>';
+        for (const group in groupNames) {
+          if (groupNames[group] === true) {
+            const option = document.createElement("option");
+            option.value = group;
+            option.textContent = group;
+            groupSelect.appendChild(option);
+          }
+        }
+        loadLastSelection();
+      }).catch(error => {
+        console.error("Error loading groups:", error);
+        showToast("Lỗi tải danh sách nhóm!");
+      });
+    }
 
-	  const domain = email.split('@')[1].toLowerCase();
-
-	  if (['hotmail.com', 'outlook.com'].includes(domain)) return 'hotmail';
-	  if (domain === 'gmail.com') return 'gmail';
-
-	  // Bỏ kiểm tra mail.tm domain – mặc định là mailtm
-	  return 'mailtm';
-	}
-	function loadGroups() {
-	  db.ref("group_names").once("value").then(snapshot => {
-		const groupNames = snapshot.val() || {};
-		const groupSelect = document.getElementById("groupSelect");
-		groupSelect.innerHTML = '<option value="">Chọn nhóm</option>';
-		for (const group in groupNames) {
-		  if (groupNames[group] === true) {
-			const option = document.createElement("option");
-			option.value = group;
-			option.textContent = group;
-			groupSelect.appendChild(option);
-		  }
-		}
-		loadLastSelection();
-	  }).catch(error => {
-		console.error("Error loading groups:", error);
-		showToast("Lỗi tải danh sách nhóm!");
-	  });
-	}
     function loadLastSelection() {
       db.ref(`user_selections/${deviceId}`).once("value").then(snapshot => {
         const selection = snapshot.val();
@@ -644,7 +650,7 @@
       const key = sanitizeEmail(mailAccount.email);
       const provider = getEmailProvider(mailAccount.email);
       try {
-                if (provider === 'hotmail' || provider === 'gmail') {
+        if (provider === 'hotmail' || provider === 'gmail') {
           await getHotmailOrGmailOtp(mailAccount, key);
         } else if (provider === 'mailtm') {
           await getMailtmOtp(mailAccount, key);
@@ -657,43 +663,41 @@
       }
     }
 
-	function copy(id) {
-	  const text = document.getElementById(id).textContent;
-	  if (!text || text === 'N/A') {
-		showToast("No valid data to copy!");
-		return;
-	  }
+    function copy(id) {
+      const text = document.getElementById(id).textContent;
+      if (!text || text === 'N/A') {
+        showToast("No valid data to copy!");
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast("Copied successfully!"))
+          .catch(err => {
+            console.error("Clipboard API failed, fallback...", err);
+            fallbackCopy(text);
+          });
+      } else {
+        fallbackCopy(text);
+      }
+    }
 
-	  if (navigator.clipboard && navigator.clipboard.writeText) {
-		navigator.clipboard.writeText(text)
-		  .then(() => showToast("Copied successfully!"))
-		  .catch(err => {
-			console.error("Clipboard API failed, fallback...", err);
-			fallbackCopy(text);
-		  });
-	  } else {
-		fallbackCopy(text);
-	  }
-	}
-
-	function fallbackCopy(text) {
-	  const textarea = document.createElement("textarea");
-	  textarea.value = text;
-	  textarea.style.position = "fixed";  // tránh làm scroll
-	  textarea.style.opacity = 0;
-	  document.body.appendChild(textarea);
-	  textarea.focus();
-	  textarea.select();
-	  try {
-		const success = document.execCommand('copy');
-		showToast(success ? "Copied!" : "Copy failed!");
-	  } catch (err) {
-		console.error("Fallback copy error:", err);
-		showToast("Copy not supported on this device.");
-	  }
-	  document.body.removeChild(textarea);
-	}
-
+    function fallbackCopy(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = 0;
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        const success = document.execCommand('copy');
+        showToast(success ? "Copied!" : "Copy failed!");
+      } catch (err) {
+        console.error("Fallback copy error:", err);
+        showToast("Copy not supported on this device.");
+      }
+      document.body.removeChild(textarea);
+    }
 
     function showToast(message) {
       const alertToast = document.getElementById('alertBox');
@@ -1019,14 +1023,14 @@
         });
       }
     }
-	function deselectAllAccounts() {
-	  const select = document.getElementById("accountSelect");
-	  for (let i = 0; i < select.options.length; i++) {
-		select.options[i].selected = false;
-	  }
-	  showToast("Đã bỏ chọn tất cả tài khoản");
-	}
-	
+
+    function deselectAllAccounts() {
+      const select = document.getElementById("accountSelect");
+      for (let i = 0; i < select.options.length; i++) {
+        select.options[i].selected = false;
+      }
+      showToast("Đã bỏ chọn tất cả tài khoản");
+    }
 
     loadGroups();
   </script>
