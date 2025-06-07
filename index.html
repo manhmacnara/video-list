@@ -186,6 +186,7 @@
         <button onclick="toggleAddGroupForm()">➕ Nhóm</button>
         <button onclick="toggleAddAccountForm()">➕ TK</button>
         <button onclick="toggleAddAccountLineForm()">📋 Nhiều dòng</button>
+        <button class="bottom" onclick="moveAccount()">📤 Chuyển nhóm</button>
       </div>
     </div>
 
@@ -235,6 +236,7 @@
         <button class="bottom" onclick="nextAccount()">Tiếp ➡</button>
         <button class="bottom" onclick="getOtp()">📩 Lấy OTP</button>
         <button class="bottom secondary" onclick="deleteAccount()">🗑 Xóa TK này</button>
+
       </div>
     </div>
   </div>
@@ -565,7 +567,52 @@
       }, 300);
     }, 1500);
   }
-  
+  function moveAccount() {
+    const groupFrom = document.getElementById("groupSelect").value;
+    const index = document.getElementById("accountSelect").value;
+
+    if (!groupFrom || index === "") {
+      showToast("Chọn tài khoản cần chuyển.");
+      return;
+    }
+
+    const groupTo = prompt("Nhập tên nhóm muốn chuyển đến:");
+    if (!groupTo || groupTo.trim() === "") return;
+
+    if (groupTo === groupFrom) {
+      showToast("Nhóm đích giống nhóm hiện tại.");
+      return;
+    }
+
+    db.ref("accounts/" + groupFrom).once("value").then(snapshot => {
+      const list = snapshot.val() || [];
+      const account = list[index];
+
+      if (!account) {
+        showToast("Tài khoản không tồn tại.");
+        return;
+      }
+
+      // Thêm vào nhóm đích
+      db.ref("accounts/" + groupTo).once("value").then(snapTo => {
+        const destList = snapTo.val() || [];
+        destList.push(account);
+
+        db.ref("accounts/" + groupTo).set(destList).then(() => {
+          // Xóa khỏi nhóm gốc
+          list.splice(index, 1);
+          db.ref("accounts/" + groupFrom).set(list).then(() => {
+            showToast("Đã chuyển tài khoản!");
+            changeGroup(); // reload
+          });
+        });
+      });
+    }).catch(err => {
+      console.error("Lỗi khi chuyển nhóm:", err);
+      showToast("Lỗi chuyển nhóm!");
+    });
+  }
+
   function renderAccountList(list) {
     const accountSelect = document.getElementById("accountSelect");
     accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
