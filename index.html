@@ -98,12 +98,12 @@
       background-color: #28a745;
       color: white;
       border: none;
-      padding: 8px;
+      padding: 5px 6px; /* nhỏ lại */
       border-radius: 6px;
-      width: 90px;
+      width: 70px;       /* giảm từ 90 -> 70 */
       white-space: nowrap;
-      font-size: 0.9rem;
-      min-width: 90px;
+      font-size: 0.8rem; /* nhỏ hơn chút */
+      min-width: 70px;
     }
     .copy-btn:hover {
       background-color: #1e7e34;
@@ -192,9 +192,11 @@
     <div class="select-group">
       <div class="select-wrapper">
         <label for="accountSelect">📋 Chọn TK:</label>
+        <input type="text" id="accountSearch" placeholder="Tìm kiếm tài khoản..." oninput="filterAccounts()" style="padding:8px; margin-bottom:5px; width:100%; border-radius:6px; border:1px solid #ccc;">
         <select id="accountSelect" onchange="changeAccount()">
           <option value="">Chọn tài khoản</option>
         </select>
+        <p id="accountCount" style="margin-top: 5px; color: #666; font-size: 0.9rem;">Số tài khoản: 0</p>
       </div>
     </div>
 
@@ -228,6 +230,7 @@
           <button class="copy-btn" onclick="copy('user')">Sao chép</button>
         </div>
       </div>
+
       <div class="field">
         <div class="label">Password:</div>
         <div class="field-content">
@@ -322,7 +325,7 @@
           if (list.length > 0) {
             updateAccountInfo(list[0]);
           } else {
-            document.getElementById("accountInfo").style.display = "none";
+            document.getElementById("accountCount").textContent = `Số tài khoản: ${list.length}`;
           }
         }
       }).catch(error => {
@@ -545,6 +548,38 @@
         });
       });
     }
+      let fullAccountList = [];
+
+      function changeGroup() {
+        const group = document.getElementById("groupSelect").value;
+        if (!group) return;
+        db.ref("accounts/" + group).once("value").then(snapshot => {
+          const list = snapshot.val();
+          const accountSelect = document.getElementById("accountSelect");
+          fullAccountList = Array.isArray(list) ? list : [];
+          renderAccountList(fullAccountList);
+        });
+      }
+
+  function renderAccountList(list) {
+    const accountSelect = document.getElementById("accountSelect");
+    accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
+    list.forEach((acc, i) => {
+      const parts = acc.split("|");
+      const display = parts[2] || parts[0] || "No identifier";
+      const option = document.createElement("option");
+      option.value = i;
+      option.textContent = `#${i + 1} - ${display}`;
+      accountSelect.appendChild(option);
+    });
+    document.getElementById("accountCount").textContent = `Số tài khoản: ${list.length}`;
+  }
+
+  function filterAccounts() {
+    const keyword = document.getElementById("accountSearch").value.toLowerCase();
+    const filtered = fullAccountList.filter(acc => acc.toLowerCase().includes(keyword));
+    renderAccountList(filtered);
+  }
 
     function deleteAccount() {
       const group = document.getElementById("groupSelect").value;
