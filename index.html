@@ -125,12 +125,19 @@
     }
     .action-buttons.bottom {
       margin-top: 15px;
+      gap: 10px;
     }
     button.secondary {
       background-color: #dc3545;
     }
     button.secondary:hover {
       background-color: #c82333;
+    }
+    button.nav-btn {
+      background-color: #6c757d;
+    }
+    button.nav-btn:hover {
+      background-color: #5a6268;
     }
     @media (max-width: 480px) {
       .select-group {
@@ -186,7 +193,7 @@
         <button onclick="toggleAddAccountForm()">➕ TK</button>
         <button onclick="toggleAddAccountLineForm()">📋 Nhiều dòng</button>
       </div>
-    </div>
+    </div ..
 
     <div class="select-group">
       <div class="select-wrapper">
@@ -253,6 +260,8 @@
       </div>
       <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">Chưa có</span></p>
       <div class="action-buttons bottom">
+        <button class="bottom nav-btn" onclick="prevAccount()">⬅ Trước</button>
+        <button class="bottom nav-btn" onclick="nextAccount()">Tiếp ➡</button>
         <button class="bottom" onclick="getOtp()">📩 Lấy OTP</button>
         <button class="bottom secondary" onclick="deleteAccount()">🗑 Xóa TK này</button>
       </div>
@@ -276,6 +285,8 @@
     const db = firebase.database();
 
     let fullAccountList = [];
+    let deviceId = localStorage.getItem('deviceId') || 'device_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('deviceId', deviceId);
 
     function sanitizeEmail(email) {
       return email.replace(/[@.]/g, match => match === '@' ? '-at-' : '-dot-');
@@ -294,15 +305,42 @@
             groupSelect.appendChild(option);
           }
         }
-        if (groupSelect.options.length > 1) {
-          changeGroup();
-        }
+        loadLastSelection();
       }).catch(error => {
         console.error("Error loading groups:", error);
       });
     }
 
-    function changeGroup() {
+    function loadLastSelection() {
+      db.ref(`user_selections/${deviceId}`).once("value").then(snapshot => {
+        const selection = snapshot.val();
+        if (selection && selection.group) {
+          const groupSelect = document.getElementById("groupSelect");
+          groupSelect.value = selection.group;
+          changeGroup(selection.accountIndex || 0);
+        } else if (groupSelect.options.length > 1) {
+          groupSelect.value = groupSelect.options[1].value;
+          changeGroup();
+        }
+      }).catch(error => {
+        console.error("Error loading last selection:", error);
+        if (groupSelect.options.length > 1) {
+          groupSelect.value = groupSelect.options[1].value;
+          changeGroup();
+        }
+      });
+    }
+
+    function saveSelection(group, accountIndex) {
+      db.ref(`user_selections/${deviceId}`).set({
+        group: group,
+        accountIndex: accountIndex
+      }).catch(error => {
+        console.error("Error saving selection:", error);
+      });
+    }
+
+    function changeGroup(selectedIndex = 0) {
       const group = document.getElementById("groupSelect").value;
       if (!group) return;
       db.ref("accounts/" + group).once("value").then(snapshot => {
@@ -311,7 +349,10 @@
         document.getElementById("accountSearch").value = "";
         renderAccountList(fullAccountList);
         if (fullAccountList.length > 0) {
-          updateAccountInfo(fullAccountList[0]);
+          const index = Math.min(selectedIndex, fullAccountList.length - 1);
+          document.getElementById("accountSelect").value = index;
+          updateAccountInfo(fullAccountList[index]);
+          saveSelection(group, index);
         }
       }).catch(error => {
         console.error("Error loading accounts for group:", error);
@@ -357,10 +398,25 @@
         const list = snapshot.val();
         if (Array.isArray(list) && index >= 0 && index < list.length) {
           updateAccountInfo(list[index]);
+          saveSelection(group, index);
         }
       }).catch(error => {
         console.error("Error loading account:", error);
       });
+    }
+
+    function prevAccount() {
+      const currentIndex = parseInt(document.getElementById("accountSelect").value) || 0;
+      const newIndex = Math.max(0, currentIndex - 1);
+      document.getElementById("accountSelect").value = newIndex;
+      changeAccount();
+    }
+
+    function nextAccount() {
+      const currentIndex = parseInt(document.getElementById("accountSelect").value) || 0;
+      const newIndex = Math.min(fullAccountList.length - 1, currentIndex + 1);
+      document.getElementById("accountSelect").value = newIndex;
+      changeAccount();
     }
 
     function updateAccountInfo(line) {
@@ -416,7 +472,7 @@
       .then(data => {
         const code = data.code || "Không nhận được OTP";
         document.getElementById("otp_result").textContent = code;
-        db.ref(`otpTimestamps/${key}`).update({
+        db.ref(`user_selections/${deviceId}`).update({
           lastOtpTime: new Date().toISOString(),
           otpCode: code
         });
@@ -571,7 +627,7 @@
           if (Array.isArray(list) && index >= 0 && index < list.length) {
             list.splice(index, 1);
             db.ref("accounts/" + group).set(list).then(() => {
-              changeGroup();
+              changeGroup(Math.max(0, index - 1));
               alert("Đã xóa tài khoản!");
             }).catch(error => {
               console.error("Error deleting account:", error);
