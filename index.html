@@ -1053,10 +1053,6 @@
       document.getElementById("confirmText").innerText = `Bạn có chắc chắn muốn xóa nhóm "${group}"? Tất cả tài khoản bên trong sẽ bị xóa vĩnh viễn.`;
       document.getElementById("confirmModal").style.display = "flex";
 
-      const alertSound = document.getElementById("alertSound");
-      if (alertSound) alertSound.play().catch(() => {}); // iPhone có thể yêu cầu interaction trước mới cho phát
-    }
-
     function confirmDeleteGroup() {
       db.ref('group_names/' + groupToDelete).remove()
         .then(() => db.ref('accounts/' + groupToDelete).remove())
