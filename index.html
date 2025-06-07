@@ -391,18 +391,32 @@
       });
     }
 
-    function copy(id) {
-      const text = document.getElementById(id).textContent;
-      if (text === "N/A") {
-        alert("Không có dữ liệu để sao chép!");
-        return;
-      }
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Đã sao chép!");
-      }).catch(error => {
-        console.error("Error copying to clipboard:", error);
-      });
+  function copy(id) {
+    const text = document.getElementById(id).textContent;
+    if (text === "N/A") {
+      showToast("Không có dữ liệu để copy!");
+      return;
     }
+
+    const tempInput = document.createElement("input");
+    tempInput.value = text;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    tempInput.setSelectionRange(0, 99999); // iOS support
+
+    try {
+      const successful = document.execCommand("copy");
+      if (successful) {
+        showToast("Đã copy!");
+      } else {
+        showToast("Copy không thành công!");
+      }
+    } catch (err) {
+      showToast("Lỗi khi copy!");
+    }
+
+    document.body.removeChild(tempInput);
+  }
 
     function toggleAddGroupForm() {
       console.log("Toggling add group form...");
@@ -539,7 +553,19 @@
           renderAccountList(fullAccountList);
         });
       }
-
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.style.display = "block";
+    toast.style.opacity = "1";
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 300);
+    }, 1500);
+  }
+  
   function renderAccountList(list) {
     const accountSelect = document.getElementById("accountSelect");
     accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
@@ -587,5 +613,10 @@
 
     loadGroups();
   </script>
+  <div id="toast" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 8px;
+    font-size: 14px; z-index: 9999; display: none; transition: opacity 0.3s ease;">
+    Đã copy!
+  </div> 
 </body>
 </html>
