@@ -35,11 +35,10 @@
     .select-wrapper {
       flex: 1;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 5px;
     }
-    select {
-      flex: 1;
+    select, input {
       font-size: 1rem;
       padding: 10px;
       border: none;
@@ -98,11 +97,11 @@
       background-color: #28a745;
       color: white;
       border: none;
-      padding: 5px 6px; /* nhỏ lại */
+      padding: 5px 6px;
       border-radius: 6px;
-      width: 70px;       /* giảm từ 90 -> 70 */
+      width: 70px;
       white-space: nowrap;
-      font-size: 0.8rem; /* nhỏ hơn chút */
+      font-size: 0.8rem;
       min-width: 70px;
     }
     .copy-btn:hover {
@@ -140,7 +139,7 @@
       .select-wrapper {
         width: 100%;
       }
-      select {
+      select, input {
         width: 100%;
       }
       .action-buttons {
@@ -192,7 +191,7 @@
     <div class="select-group">
       <div class="select-wrapper">
         <label for="accountSelect">📋 Chọn TK:</label>
-        <input type="text" id="accountSearch" placeholder="Tìm kiếm tài khoản..." oninput="filterAccounts()" style="padding:8px; margin-bottom:5px; width:100%; border-radius:6px; border:1px solid #ccc;">
+        <input type="text" id="accountSearch" placeholder="Tìm kiếm tài khoản..." oninput="filterAccounts()">
         <select id="accountSelect" onchange="changeAccount()">
           <option value="">Chọn tài khoản</option>
         </select>
@@ -276,19 +275,19 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    let fullAccountList = [];
+
     function sanitizeEmail(email) {
       return email.replace(/[@.]/g, match => match === '@' ? '-at-' : '-dot-');
     }
 
     function loadGroups() {
-      console.log("Loading groups...");
       db.ref("group_names").once("value").then(snapshot => {
         const groupNames = snapshot.val() || {};
         const groupSelect = document.getElementById("groupSelect");
         groupSelect.innerHTML = '<option value="">Chọn nhóm</option>';
         for (const group in groupNames) {
           if (groupNames[group] === true) {
-            console.log("Found group:", group);
             const option = document.createElement("option");
             option.value = group;
             option.textContent = group;
@@ -297,8 +296,6 @@
         }
         if (groupSelect.options.length > 1) {
           changeGroup();
-        } else {
-          console.log("No groups found or only default option.");
         }
       }).catch(error => {
         console.error("Error loading groups:", error);
@@ -308,36 +305,54 @@
     function changeGroup() {
       const group = document.getElementById("groupSelect").value;
       if (!group) return;
-      console.log("Changing to group:", group);
       db.ref("accounts/" + group).once("value").then(snapshot => {
-        const list = snapshot.val();
-        const accountSelect = document.getElementById("accountSelect");
-        accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
-        if (Array.isArray(list)) {
-          list.forEach((acc, i) => {
-            const parts = acc.split("|");
-            const display = parts[2] || parts[0] || "No identifier";
-            const option = document.createElement("option");
-            option.value = i;
-            option.textContent = `#${i + 1} - ${display}`;
-            accountSelect.appendChild(option);
-          });
-          if (list.length > 0) {
-            updateAccountInfo(list[0]);
-          } else {
-            document.getElementById("accountCount").textContent = `Số tài khoản: ${list.length}`;
-          }
+        const list = snapshot.val() || [];
+        fullAccountList = Array.isArray(list) ? list : [];
+        document.getElementById("accountSearch").value = "";
+        renderAccountList(fullAccountList);
+        if (fullAccountList.length > 0) {
+          updateAccountInfo(fullAccountList[0]);
         }
       }).catch(error => {
         console.error("Error loading accounts for group:", error);
       });
     }
 
+    function renderAccountList(list) {
+      const accountSelect = document.getElementById("accountSelect");
+      accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
+      list.forEach((acc, i) => {
+        const parts = acc.split("|");
+        const display = parts[2] || parts[0] || "No identifier";
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `#${i + 1} - ${display}`;
+        accountSelect.appendChild(option);
+      });
+      document.getElementById("accountCount").textContent = `Số tài khoản: ${list.length}`;
+      document.getElementById("accountInfo").style.display = list.length > 0 ? "block" : "none";
+    }
+
+    function filterAccounts() {
+      const keyword = document.getElementById("accountSearch").value.toLowerCase().trim();
+      if (!keyword) {
+        renderAccountList(fullAccountList);
+        return;
+      }
+      const filtered = fullAccountList.filter((acc, index) => {
+        const parts = acc.split("|");
+        const user = (parts[0] || "").toLowerCase();
+        const password = (parts[1] || "").toLowerCase();
+        const email = (parts[2] || "").toLowerCase();
+        return user.includes(keyword) || password.includes(keyword) || email.includes(keyword);
+      });
+      renderAccountList(filtered);
+    }
+
     function changeAccount() {
       const index = document.getElementById("accountSelect").value;
       const group = document.getElementById("groupSelect").value;
       if (!group || index === "") return;
-      console.log("Changing to account index:", index);
       db.ref("accounts/" + group).once("value").then(snapshot => {
         const list = snapshot.val();
         if (Array.isArray(list) && index >= 0 && index < list.length) {
@@ -426,7 +441,6 @@
     }
 
     function toggleAddGroupForm() {
-      console.log("Toggling add group form...");
       const form = document.getElementById("addGroupForm");
       form.style.display = form.style.display === "block" ? "none" : "block";
       document.getElementById("newGroupName").value = "";
@@ -438,7 +452,6 @@
         alert("Vui lòng nhập tên nhóm!");
         return;
       }
-      console.log("Adding group:", groupName);
       db.ref("group_names/" + groupName).set(true).then(() => {
         db.ref("accounts/" + groupName).set([]).then(() => {
           loadGroups();
@@ -455,7 +468,6 @@
     }
 
     function toggleAddAccountForm() {
-      console.log("Toggling add account form...");
       const form = document.getElementById("addAccountForm");
       form.style.display = form.style.display === "block" ? "none" : "block";
       document.getElementById("newUser").value = "";
@@ -483,7 +495,6 @@
       }
 
       const accountString = `${user}|${password}|${email}||${refreshToken}|${clientId}`;
-      console.log("Adding account to group:", group);
       db.ref("accounts/" + group).once("value").then(snapshot => {
         const list = snapshot.val() || [];
         list.push(accountString);
@@ -499,7 +510,6 @@
     }
 
     function toggleAddAccountLineForm() {
-      console.log("Toggling add account line form...");
       const form = document.getElementById("addAccountLineForm");
       form.style.display = form.style.display === "block" ? "none" : "block";
       document.getElementById("accountLine").value = "";
@@ -517,7 +527,6 @@
         return;
       }
 
-      console.log("Adding accounts from lines to group:", group);
       db.ref("accounts/" + group).once("value").then(snapshot => {
         const currentList = snapshot.val() || [];
         const newAccounts = accountLines.map(line => {
@@ -548,38 +557,6 @@
         });
       });
     }
-      let fullAccountList = [];
-
-      function changeGroup() {
-        const group = document.getElementById("groupSelect").value;
-        if (!group) return;
-        db.ref("accounts/" + group).once("value").then(snapshot => {
-          const list = snapshot.val();
-          const accountSelect = document.getElementById("accountSelect");
-          fullAccountList = Array.isArray(list) ? list : [];
-          renderAccountList(fullAccountList);
-        });
-      }
-
-  function renderAccountList(list) {
-    const accountSelect = document.getElementById("accountSelect");
-    accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
-    list.forEach((acc, i) => {
-      const parts = acc.split("|");
-      const display = parts[2] || parts[0] || "No identifier";
-      const option = document.createElement("option");
-      option.value = i;
-      option.textContent = `#${i + 1} - ${display}`;
-      accountSelect.appendChild(option);
-    });
-    document.getElementById("accountCount").textContent = `Số tài khoản: ${list.length}`;
-  }
-
-  function filterAccounts() {
-    const keyword = document.getElementById("accountSearch").value.toLowerCase();
-    const filtered = fullAccountList.filter(acc => acc.toLowerCase().includes(keyword));
-    renderAccountList(filtered);
-  }
 
     function deleteAccount() {
       const group = document.getElementById("groupSelect").value;
@@ -589,7 +566,6 @@
         return;
       }
       if (confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) {
-        console.log("Deleting account from group:", group, "index:", index);
         db.ref("accounts/" + group).once("value").then(snapshot => {
           const list = snapshot.val() || [];
           if (Array.isArray(list) && index >= 0 && index < list.length) {
