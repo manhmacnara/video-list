@@ -647,19 +647,43 @@
       }
     }
 
-    function copy(id) {
-      const text = document.getElementById(id).textContent;
-      if (!text || text === 'N/A') {
-        showToast("No valid data to copy!");
-        return;
-      }
-      navigator.clipboard.writeText(text)
-        .then(() => showToast("Copied successfully!"))
-        .catch(error => {
-          console.error('Error copying to clipboard:', error);
-          showToast("Error copying to clipboard!");
-        });
-    }
+	function copy(id) {
+	  const text = document.getElementById(id).textContent;
+	  if (!text || text === 'N/A') {
+		showToast("No valid data to copy!");
+		return;
+	  }
+
+	  if (navigator.clipboard && navigator.clipboard.writeText) {
+		navigator.clipboard.writeText(text)
+		  .then(() => showToast("Copied successfully!"))
+		  .catch(err => {
+			console.error("Clipboard API failed, fallback...", err);
+			fallbackCopy(text);
+		  });
+	  } else {
+		fallbackCopy(text);
+	  }
+	}
+
+	function fallbackCopy(text) {
+	  const textarea = document.createElement("textarea");
+	  textarea.value = text;
+	  textarea.style.position = "fixed";  // tránh làm scroll
+	  textarea.style.opacity = 0;
+	  document.body.appendChild(textarea);
+	  textarea.focus();
+	  textarea.select();
+	  try {
+		const success = document.execCommand('copy');
+		showToast(success ? "Copied!" : "Copy failed!");
+	  } catch (err) {
+		console.error("Fallback copy error:", err);
+		showToast("Copy not supported on this device.");
+	  }
+	  document.body.removeChild(textarea);
+	}
+
 
     function showToast(message) {
       const alertToast = document.getElementById('alertBox');
