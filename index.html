@@ -139,6 +139,12 @@
     button.nav-btn:hover {
       background-color: #5a6268;
     }
+    button.apple-login-btn {
+      background-color: #000;
+    }
+    button.apple-login-btn:hover {
+      background-color: #333;
+    }
     @media (max-width: 480px) {
       .select-group {
         flex-direction: column;
@@ -193,7 +199,7 @@
         <button onclick="toggleAddAccountForm()">➕ TK</button>
         <button onclick="toggleAddAccountLineForm()">📋 Nhiều dòng</button>
       </div>
-    </div ..
+    </div>
 
     <div class="select-group">
       <div class="select-wrapper">
@@ -216,6 +222,7 @@
       <input type="text" id="newUser" placeholder="User" />
       <input type="text" id="newPassword" placeholder="Password" />
       <input type="email" id="newEmail" placeholder="Email" />
+      <input type="email" id="newAppleId" placeholder="Apple ID" />
       <input type="text" id="newRefreshToken" placeholder="Refresh Token" />
       <input type="text" id="newClientId" placeholder="Client ID" />
       <button onclick="addAccount()">Thêm</button>
@@ -223,7 +230,7 @@
     </div>
 
     <div id="addAccountLineForm" class="form-container">
-      <textarea id="accountLine" placeholder="Dán nhiều dòng (VD: user|password\nemail|password\nuser|password|email||refresh_token|client_id)" rows="3"></textarea>
+      <textarea id="accountLine" placeholder="Dán nhiều dòng (VD: user|password|email|apple_id||refresh_token|client_id)" rows="3"></textarea>
       <button onclick="addAccountFromLine()">Thêm</button>
       <button onclick="toggleAddAccountLineForm()">Hủy</button>
     </div>
@@ -236,7 +243,6 @@
           <button class="copy-btn" onclick="copy('user')">Sao chép</button>
         </div>
       </div>
-
       <div class="field">
         <div class="label">Password:</div>
         <div class="field-content">
@@ -252,6 +258,20 @@
         </div>
       </div>
       <div class="field">
+        <div class="label">Apple ID:</div>
+        <div class="field-content">
+          <div class="value" id="apple_id"></div>
+          <button class="copy-btn" onclick="copy('apple_id')">Sao chép</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">Apple ID Credentials:</div>
+        <div class="field-content">
+          <div class="value" id="apple_credentials"></div>
+          <button class="copy-btn" onclick="copyAppleCredentials()">Sao chép ID+Pass</button>
+        </div>
+      </div>
+      <div class="field">
         <div class="label">OTP:</div>
         <div class="field-content">
           <div class="value" id="otp_result">Đang tải...</div>
@@ -263,6 +283,7 @@
         <button class="bottom nav-btn" onclick="prevAccount()">⬅ Trước</button>
         <button class="bottom nav-btn" onclick="nextAccount()">Tiếp ➡</button>
         <button class="bottom" onclick="getOtp()">📩 Lấy OTP</button>
+        <button class="bottom apple-login-btn" onclick="appleLogin()">🍎 Đăng nhập Apple</button>
         <button class="bottom secondary" onclick="deleteAccount()">🗑 Xóa TK này</button>
       </div>
     </div>
@@ -364,7 +385,7 @@
       accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
       list.forEach((acc, i) => {
         const parts = acc.split("|");
-        const display = parts[2] || parts[0] || "No identifier";
+        const display = parts[3] || parts[2] || parts[0] || "No identifier";
         const option = document.createElement("option");
         option.value = i;
         option.textContent = `#${i + 1} - ${display}`;
@@ -385,7 +406,8 @@
         const user = (parts[0] || "").toLowerCase();
         const password = (parts[1] || "").toLowerCase();
         const email = (parts[2] || "").toLowerCase();
-        return user.includes(keyword) || password.includes(keyword) || email.includes(keyword);
+        const appleId = (parts[3] || "").toLowerCase();
+        return user.includes(keyword) || password.includes(keyword) || email.includes(keyword) || appleId.includes(keyword);
       });
       renderAccountList(filtered);
     }
@@ -425,13 +447,16 @@
         user: parts[0] || "",
         password: parts[1] || "",
         email: parts[2] || "",
-        refresh_token: parts[4] || "",
-        client_id: parts[5] || ""
+        apple_id: parts[3] || "",
+        refresh_token: parts[5] || "",
+        client_id: parts[6] || ""
       };
       window.currentAccount = acc;
       document.getElementById("user").textContent = acc.user || "N/A";
       document.getElementById("password").textContent = acc.password || "N/A";
       document.getElementById("email").textContent = acc.email || "N/A";
+      document.getElementById("apple_id").textContent = acc.apple_id || "N/A";
+      document.getElementById("apple_credentials").textContent = acc.apple_id && acc.password ? `${acc.apple_id}:${acc.password}` : "N/A";
       document.getElementById("otp_result").textContent = acc.email ? "Đang tải..." : "Email không có, không thể lấy OTP";
       document.getElementById("accountInfo").style.display = "block";
       if (acc.email) {
@@ -449,6 +474,48 @@
       } else {
         document.getElementById("lastOtpTime").textContent = "N/A";
       }
+    }
+
+    function copy(id) {
+      const text = document.getElementById(id).textContent;
+      if (text === "N/A") {
+        alert("Không có dữ liệu để sao chép!");
+        return;
+      }
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Đã sao chép!");
+      }).catch(error => {
+        console.error("Error copying to clipboard:", error);
+      });
+    }
+
+    function copyAppleCredentials() {
+      const acc = window.currentAccount;
+      if (!acc.apple_id || !acc.password) {
+        alert("Không có Apple ID hoặc password để sao chép!");
+        return;
+      }
+      const credentials = `${acc.apple_id}:${acc.password}`;
+      navigator.clipboard.writeText(credentials).then(() => {
+        alert("Đã sao chép Apple ID và Password!");
+      }).catch(error => {
+        console.error("Error copying Apple credentials:", error);
+      });
+    }
+
+    function appleLogin() {
+      const acc = window.currentAccount;
+      if (!acc.apple_id || !acc.password) {
+        alert("Không có Apple ID hoặc password để đăng nhập!");
+        return;
+      }
+      const credentials = `${acc.apple_id}:${acc.password}`;
+      navigator.clipboard.writeText(credentials).then(() => {
+        alert("Đã sao chép Apple ID và Password. Vui lòng dán riêng Apple ID và password vào các trường đăng nhập.");
+        window.open("https://appleid.apple.com/sign-in", "_blank");
+      }).catch(error => {
+        console.error("Error copying Apple credentials for login:", error);
+      });
     }
 
     function getOtp() {
@@ -472,7 +539,7 @@
       .then(data => {
         const code = data.code || "Không nhận được OTP";
         document.getElementById("otp_result").textContent = code;
-        db.ref(`user_selections/${deviceId}`).update({
+        db.ref(`otpTimestamps/${key}`).update({
           lastOtpTime: new Date().toISOString(),
           otpCode: code
         });
@@ -480,19 +547,6 @@
       .catch(error => {
         console.error("Error getting OTP:", error);
         document.getElementById("otp_result").textContent = "Lỗi khi gọi API";
-      });
-    }
-
-    function copy(id) {
-      const text = document.getElementById(id).textContent;
-      if (text === "N/A") {
-        alert("Không có dữ liệu để sao chép!");
-        return;
-      }
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Đã sao chép!");
-      }).catch(error => {
-        console.error("Error copying to clipboard:", error);
       });
     }
 
@@ -529,6 +583,7 @@
       document.getElementById("newUser").value = "";
       document.getElementById("newPassword").value = "";
       document.getElementById("newEmail").value = "";
+      document.getElementById("newAppleId").value = "";
       document.getElementById("newRefreshToken").value = "";
       document.getElementById("newClientId").value = "";
     }
@@ -542,15 +597,16 @@
       const user = document.getElementById("newUser").value.trim();
       const password = document.getElementById("newPassword").value.trim();
       const email = document.getElementById("newEmail").value.trim();
+      const appleId = document.getElementById("newAppleId").value.trim();
       const refreshToken = document.getElementById("newRefreshToken").value.trim();
       const clientId = document.getElementById("newClientId").value.trim();
 
-      if (!password || (!user && !email)) {
-        alert("Vui lòng nhập ít nhất Password và một trong hai: User hoặc Email!");
+      if (!password || (!user && !email && !appleId)) {
+        alert("Vui lòng nhập ít nhất Password và một trong các trường: User, Email, hoặc Apple ID!");
         return;
       }
 
-      const accountString = `${user}|${password}|${email}||${refreshToken}|${clientId}`;
+      const accountString = `${user}|${password}|${email}|${appleId}||${refreshToken}|${clientId}`;
       db.ref("accounts/" + group).once("value").then(snapshot => {
         const list = snapshot.val() || [];
         list.push(accountString);
@@ -591,14 +647,15 @@
           const user = parts[0] || "";
           const password = parts[1] || "";
           const email = parts[2] || "";
-          const refreshToken = parts[4] || "";
-          const clientId = parts[5] || "";
-          if (!password || (!user && !email)) return null;
-          return `${user}|${password}|${email}||${refreshToken}|${clientId}`;
+          const appleId = parts[3] || "";
+          const refreshToken = parts[5] || "";
+          const clientId = parts[6] || "";
+          if (!password || (!user && !email && !appleId)) return null;
+          return `${user}|${password}|${email}|${appleId}||${refreshToken}|${clientId}`;
         }).filter(acc => acc !== null);
 
         if (newAccounts.length === 0) {
-          alert("Định dạng không hợp lệ! Cần ít nhất 2 trường (user|password hoặc email|password)");
+          alert("Định dạng không hợp lệ! Cần ít nhất 2 trường (password và một trong: user, email, hoặc apple_id)");
           return;
         }
 
