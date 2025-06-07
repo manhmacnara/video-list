@@ -552,7 +552,7 @@
         const key = sanitizeEmail(acc.email);
         db.ref(`otpTimestamps/${key}`).once("value").then(snapshot => {
           const data = snapshot.val();
-          document.getElementById("lastOtpTime").textContent = data && data.lastOtpTime ? new Date(data.lastOtpTime).toLocaleString() : "Chưa có";
+          document.getElementById("lastOtpTime").textContent = data && data.lastOtpTime ? new Date(data.lastOtpTime).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) : "Chưa có";
         }).catch(error => console.error("Error loading OTP timestamp:", error));
       } else {
         document.getElementById("lastOtpTime").textContent = "N/A";
