@@ -236,6 +236,15 @@
           </select>
         </div>
       </div>
+      <div id="editAccountForm" class="form-container" style="display: none;">
+        <input type="text" id="editUser" placeholder="User" />
+        <input type="text" id="editPassword" placeholder="Password" />
+        <input type="email" id="editEmail" placeholder="Email" />
+        <input type="text" id="editRefreshToken" placeholder="Refresh Token" />
+        <input type="text" id="editClientId" placeholder="Client ID" />
+        <button onclick="saveEditedAccount()">Lưu thay đổi</button>
+        <button onclick="toggleEditAccount()">Hủy</button>
+      </div>      
       <div class="action-buttons">
         <button onclick="toggleAddGroupForm()">➕ Nhóm</button>
     <button onclick="deleteGroup()" class="secondary">🗑 Xóa nhóm</button>
@@ -340,6 +349,7 @@
         <button class="bottom nav-btn" onclick="nextAccount()">Tiếp ➡</button>
         <button class="bottom" onclick="getOtp()">📩 Lấy OTP</button>
         <button class="bottom secondary" onclick="deleteAccount()">🗑 Xóa TK này</button>
+        <button class="bottom nav-btn" onclick="toggleEditAccount()">✏️ Sửa TK</button>
       </div>
     </div>
   </div>
@@ -1053,6 +1063,59 @@
       const alertSound = document.getElementById("alertSound");
       if (alertSound) alertSound.play().catch(() => {}); // iPhone có thể yêu cầu interaction trước mới cho phát
     }
+    function toggleEditAccount() {
+      const form = document.getElementById("editAccountForm");
+      const isOpen = form.style.display === "block";
+      form.style.display = isOpen ? "none" : "block";
+      if (!isOpen && window.currentAccount) {
+        document.getElementById("editUser").value = currentAccount.user || "";
+        document.getElementById("editPassword").value = currentAccount.password || "";
+        document.getElementById("editEmail").value = currentAccount.email || "";
+        document.getElementById("editRefreshToken").value = currentAccount.refresh_token || "";
+        document.getElementById("editClientId").value = currentAccount.client_id || "";
+      }
+    }
+    function saveEditedAccount() {
+      const group = document.getElementById('groupSelect').value;
+      const index = parseInt(document.getElementById("accountSelect").value);
+      if (!group || isNaN(index)) {
+        showToast("Không xác định được tài khoản để sửa!");
+        return;
+      }
+    
+      const user = document.getElementById("editUser").value.trim();
+      const password = document.getElementById("editPassword").value.trim();
+      const email = document.getElementById("editEmail").value.trim();
+      const refreshToken = document.getElementById("editRefreshToken").value.trim();
+      const clientId = document.getElementById("editClientId").value.trim();
+    
+      if (!password || (!user && !email)) {
+        showToast("Phải có mật khẩu và user hoặc email!");
+        return;
+      }
+    
+      const provider = getEmailProvider(email);
+      if (email && !provider) {
+        showToast("Email không hợp lệ (chỉ hỗ trợ Gmail, Hotmail, mail.tm)");
+        return;
+      }
+    
+      const newAccount = `${user}|${password}|${email}|||${refreshToken}|${clientId}`;
+      
+      db.ref('accounts/' + group).once('value').then(res => {
+        const accounts = res.val() || [];
+        accounts[index] = newAccount;
+        db.ref('accounts/' + group).set(accounts).then(() => {
+          showToast("Đã cập nhật tài khoản!");
+          toggleEditAccount();
+          changeGroup(index); // load lại với index cũ
+        }).catch(error => {
+          console.error("Lỗi khi cập nhật:", error);
+          showToast("Không thể lưu thông tin!");
+        });
+      });
+    }
+            
     function confirmDeleteGroup() {
       db.ref('group_names/' + groupToDelete).remove()
         .then(() => db.ref('accounts/' + groupToDelete).remove())
