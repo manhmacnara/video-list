@@ -280,7 +280,6 @@
           </div>
           
           <select id="accountSelect" multiple onchange="changeAccount()">
-            <option value="">Chọn tài khoản</option>
           </select>
         </div>
       </div>
@@ -481,7 +480,7 @@
 
       function renderAccountList() {
         const accountSelect = document.getElementById("accountSelect");
-        accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
+        accountSelect.innerHTML = '';
         fullAccountList.forEach((acc, i) => {
           const parts = acc.split("|");
           const display = parts[2] || parts[0] || "No identifier";
@@ -497,7 +496,7 @@
       function filterAccounts() {
         const keyword = document.getElementById("accountSearch").value.toLowerCase().trim();
         const accountSelect = document.getElementById("accountSelect");
-        accountSelect.innerHTML = '<option value="">Chọn tài khoản</option>';
+        accountSelect.innerHTML = '';
         const filtered = fullAccountList.filter((acc, index) => {
           const parts = acc.split("|");
           const user = (parts[0] || "").toLowerCase();
