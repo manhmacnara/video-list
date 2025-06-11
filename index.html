@@ -563,9 +563,10 @@
         user: parts[0] || "",
         password: parts[1] || "",
         email: parts[2] || "",
-        refresh_token: parts[3] || "",
-        client_id: parts[4] || "",
-        note: parts[5] || ""
+        pass mail: parts[3] || "",
+        refresh_token: parts[4] || "",
+        client_id: parts[5] || "",
+        note: parts[6] || ""
       };
       window.currentAccount = acc;
       document.getElementById("user").textContent = acc.user || "N/A";
@@ -885,9 +886,9 @@
           const user = parts[0]?.trim() || '';
           const password = parts[1]?.trim() || '';
           const email = parts[2]?.trim() || '';
-          const refreshToken = parts[3]?.trim() || '';
-          const clientId = parts[4]?.trim() || '';
-          const note = parts[5]?.trim() || '';
+          const refreshToken = parts[4]?.trim() || '';
+          const clientId = parts[5]?.trim() || '';
+          const note = parts[6]?.trim() || '';
           if (!password || (!user && !email)) return null;
           const provider = getEmailProvider(email);
           if (email && !provider) return null;
