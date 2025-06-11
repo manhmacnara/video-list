@@ -290,6 +290,7 @@
       <input type="text" id="newUser" placeholder="User" />
       <input type="text" id="newPassword" placeholder="Password" />
       <input type="email" id="newEmail" placeholder="Email (Hotmail, Gmail, hoặc mail.tm)" />
+      <input type="text" id="newPassMail" placeholder="Pass mail" />
       <input type="text" id="newRefreshToken" placeholder="Refresh Token (Hotmail/Gmail)" />
       <input type="text" id="newClientId" placeholder="Client ID (Hotmail/Gmail)" />
       <input type="text" id="newNote" placeholder="Ghi chú (tuỳ chọn)" />
@@ -307,6 +308,7 @@
       <input type="text" id="editUser" placeholder="User" />
       <input type="text" id="editPassword" placeholder="Password" />
       <input type="email" id="editEmail" placeholder="Email" />
+      <input type="text" id="editPassMail" placeholder="Pass mail" />
       <input type="text" id="editRefreshToken" placeholder="Refresh Token" />
       <input type="text" id="editClientId" placeholder="Client ID" />
       <input type="text" id="editNote" placeholder="Ghi chú" />
@@ -563,7 +565,7 @@
         user: parts[0] || "",
         password: parts[1] || "",
         email: parts[2] || "",
-        pass mail: parts[3] || "",
+        pass_mail: parts[3] || "",
         refresh_token: parts[4] || "",
         client_id: parts[5] || "",
         note: parts[6] || ""
@@ -608,6 +610,7 @@
           body: JSON.stringify({
             type: "tiktok",
             email: acc.email,
+            pass_mail: acc.pass_mail || "",
             refresh_token: acc.refresh_token || "",
             client_id: acc.client_id || ""
           })
@@ -822,11 +825,12 @@
       const user = document.getElementById('newUser').value.trim();
       const password = document.getElementById('newPassword').value.trim();
       const email = document.getElementById('newEmail').value.trim();
+      const passMail = document.getElementById('newPassMail').value.trim();
       const refreshToken = document.getElementById('newRefreshToken').value.trim();
       const clientId = document.getElementById('newClientId').value.trim();
       const note = document.getElementById('newNote').value.trim();
-      if (!password || (!user && !email)) {
-        showToast("Please enter at least Password and either User or Email!");
+      if (!password || (!user && !email) || !passMail) {
+        showToast("Please enter at least Password, Email, and Pass Mail!");
         return;
       }
       const provider = getEmailProvider(email);
@@ -834,7 +838,7 @@
         showToast("Email must be a valid Hotmail, Gmail, or mail.tm email!");
         return;
       }
-      const accountString = `${user}|${password}|${email}|${refreshToken}|${clientId}|${note}`;
+      const accountString = `${user}|${password}|${email}|${passMail}|${refreshToken}|${clientId}|${note}`;
       db.ref('accounts/' + group).once('value').then(res => {
         const accounts = res.val() || [];
         if (accounts.includes(accountString)) {
@@ -882,17 +886,18 @@
         const accounts = res.val() || [];
         const newAccounts = accountLines.map(line => {
           const parts = line.split('|');
-          if (parts.length < 2) return null;
+          if (parts.length < 6) return null; // Require user, password, email, pass_mail, refresh_token, client_id
           const user = parts[0]?.trim() || '';
           const password = parts[1]?.trim() || '';
           const email = parts[2]?.trim() || '';
+          const passMail = parts[3]?.trim() || '';
           const refreshToken = parts[4]?.trim() || '';
           const clientId = parts[5]?.trim() || '';
-          const note = parts[6]?.trim() || '';
-          if (!password || (!user && !email)) return null;
+          const note = parts[6]?.trim() || ''; // Optional note
+          if (!password || (!user && !email) || !passMail) return null;
           const provider = getEmailProvider(email);
           if (email && !provider) return null;
-          const accountString = `${user}|${password}|${email}|${refreshToken}|${clientId}|${note}`;
+          const accountString = `${user}|${password}|${email}|${passMail}|${refreshToken}|${clientId}|${note}`;
           if (accounts.includes(accountString)) return null;
           return accountString;
         }).filter(acc => acc);
@@ -914,7 +919,6 @@
         showToast("Error accessing accounts!");
       });
     }
-
     function toggleMoveMenu() {
       const menu = document.getElementById('moveMenu');
       menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
@@ -1143,11 +1147,12 @@
       const user = document.getElementById("editUser").value.trim();
       const password = document.getElementById("editPassword").value.trim();
       const email = document.getElementById("editEmail").value.trim();
+      const passMail = document.getElementById("editPassMail").value.trim();
       const refreshToken = document.getElementById("editRefreshToken").value.trim();
       const clientId = document.getElementById("editClientId").value.trim();
       const note = document.getElementById("editNote").value.trim();
-      if (!password || (!user && !email)) {
-        showToast("Phải có mật khẩu và user hoặc email!");
+      if (!password || !email || !passMail) {
+        showToast("Phải có mật khẩu, email và pass mail!");
         return;
       }
       const provider = getEmailProvider(email);
@@ -1155,7 +1160,7 @@
         showToast("Email không hợp lệ (chỉ hỗ trợ Gmail, Hotmail, mail.tm)");
         return;
       }
-      const newAccount = `${user}|${password}|${email}|${refreshToken}|${clientId}|${note}`;
+      const newAccount = `${user}|${password}|${email}|${passMail}|${refreshToken}|${clientId}|${note}`;
       db.ref('accounts/' + group).once('value').then(res => {
         const accounts = res.val() || [];
         accounts[index] = newAccount;
