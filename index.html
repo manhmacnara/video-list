@@ -372,7 +372,8 @@
       <div class="action-buttons bottom" style="margin-top: 5px;">
         <button class="bottom" onclick="registerDevice()">📱 Gán thiết bị</button>
         <button class="bottom secondary" onclick="removeDevice()">❌ Xóa thiết bị</button>
-      </div>   
+        <button class="bottom" onclick="findEmailByDeviceId()">🔍 Kiểm tra tài khoản đã gán</button>
+      </div>     
     </div>
   </div>
 
@@ -1239,6 +1240,34 @@
           showToast("❌ Không thể xóa thiết bị!");
         });
     }
+    function findEmailByDeviceId() {
+      const targetDeviceId = localStorage.getItem("deviceId") || generateDeviceId();
+    
+      firebase.database().ref("device_logs").once("value")
+        .then(snapshot => {
+          const logs = snapshot.val() || {};
+          let foundEmail = null;
+    
+          for (const emailKey in logs) {
+            const log = logs[emailKey];
+            if (log.deviceId === targetDeviceId) {
+              foundEmail = emailKey;
+              break;
+            }
+          }
+    
+          if (foundEmail) {
+            showToast(`🔍 Thiết bị này đã gán với: ${foundEmail.replace(/-at-/g, "@").replace(/-dot-/g, ".")}`);
+          } else {
+            showToast("❌ Thiết bị này chưa được gán tài khoản nào.");
+          }
+        })
+        .catch(err => {
+          console.error("Lỗi khi tìm thiết bị:", err);
+          showToast("Không thể truy vấn thiết bị!");
+        });
+    }
+        
         
   </script>
   <div id="videoLinks" style="margin: 15px 0;">
