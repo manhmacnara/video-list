@@ -756,13 +756,14 @@
         const index = parseInt(selected, 10);
         const group = document.getElementById("groupSelect").value;
         if (!group || isNaN(index)) return;
-    
-        db.ref("accounts/" + group).once("value").then(snapshot => {
-          const list = snapshot.val() || [];
-          if (Array.isArray(list) && index >= 0 && index < list.length) {
-            updateAccountInfo(list[index]);
-            saveSelection(group, index);
-          }
+        
+        // Thêm dòng này để an toàn hơn
+        if (!fullAccountList || !Array.isArray(fullAccountList)) return;
+        
+        if (index >= 0 && index < fullAccountList.length) {
+          updateAccountInfo(fullAccountList[index]);
+          saveSelection(group, index);
+        }
         });
       }
     }
