@@ -100,8 +100,17 @@
       border-radius: 5px;
       flex-grow: 1;
       min-width: 0;
-      word-break: break-word;
+      overflow-x: auto;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      word-break: keep-all;
+      scrollbar-width: none; /* Ẩn scrollbar Firefox */
     }
+    
+    .value::-webkit-scrollbar {
+      display: none; /* Ẩn scrollbar Chrome */
+    }
+
     .copy-btn {
       background-color: #28a745;
       color: white;
