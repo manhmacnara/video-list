@@ -369,6 +369,10 @@
         <button class="bottom secondary" onclick="deleteAccount()">🗑 Xóa TK này</button>
         <button class="bottom nav-btn" onclick="toggleEditAccount()">✏️ Sửa TK</button>
       </div>
+      <div class="action-buttons bottom" style="margin-top: 5px;">
+        <button class="bottom" onclick="registerDevice()">📱 Gán thiết bị</button>
+        <button class="bottom secondary" onclick="removeDevice()">❌ Xóa thiết bị</button>
+      </div>   
     </div>
   </div>
 
@@ -1180,11 +1184,65 @@
         });
       });
     }
-
+    
     loadGroups();
+    function generateDeviceId() {
+      const raw = [
+        navigator.userAgent,
+        navigator.platform,
+        screen.width + 'x' + screen.height
+      ].join('|');
+      return 'dev_' + btoa(raw).substring(0, 16);
+    }
+    
+    function registerDevice() {
+      const acc = window.currentAccount;
+      if (!acc?.email) {
+        showToast("Không có email để gán thiết bị!");
+        return;
+      }
+    
+      const emailKey = sanitizeEmail(acc.email);
+      const deviceId = localStorage.getItem('deviceId') || generateDeviceId();
+      localStorage.setItem('deviceId', deviceId);
+    
+      const info = {
+        deviceId,
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        screen: `${screen.width}x${screen.height}`,
+        time: new Date().toISOString()
+      };
+    
+      firebase.database().ref(`device_logs/${emailKey}`).set(info)
+        .then(() => showToast("✅ Đã gán thiết bị cho tài khoản!"))
+        .catch(err => {
+          console.error("Lỗi khi lưu thiết bị:", err);
+          showToast("❌ Không thể lưu thiết bị!");
+        });
+    }
+    
+    function removeDevice() {
+      const acc = window.currentAccount;
+      if (!acc?.email) {
+        showToast("Không có email để xóa thiết bị!");
+        return;
+      }
+    
+      const emailKey = sanitizeEmail(acc.email);
+      firebase.database().ref(`device_logs/${emailKey}`).remove()
+        .then(() => {
+          showToast("🗑 Đã xóa thông tin thiết bị!");
+        })
+        .catch(err => {
+          console.error("Lỗi khi xóa thiết bị:", err);
+          showToast("❌ Không thể xóa thiết bị!");
+        });
+    }
+        
   </script>
   <div id="videoLinks" style="margin: 15px 0;">
-    <h4>                   🎬 Chọn Video TikTok:</h4>
+    <h4>                   🎬 Chọn Video 60 Phút TikTok:</h4>
     <div id="videoList"></div>
   </div>
   
