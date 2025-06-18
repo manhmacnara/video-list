@@ -320,6 +320,10 @@
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
           <label for="accountSelect" style="font-weight: bold; color: #444;">📋 TK:</label>
           <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" style="width: 120px;" />
+          <label style="display: flex; align-items: center; font-size: 0.8rem;">
+            <input type="checkbox" id="searchAllGroups" style="margin-right: 5px;" onchange="filterAccounts()" />
+            Tìm tất cả nhóm
+          </label>          
           <button onclick="deselectAllAccounts()" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 5px; background: #ddd; border: none; cursor: pointer;">Bỏ chọn</button>
           <p id="accountCount" style="margin: 0; color: #666; font-size: 0.9rem;">#TK: 0</p>
         </div>
@@ -562,26 +566,75 @@
 
     function filterAccounts() {
       const keyword = document.getElementById("accountSearch").value.toLowerCase().trim();
+      const searchAll = document.getElementById("searchAllGroups").checked;
       const accountSelect = document.getElementById("accountSelect");
       accountSelect.innerHTML = '';
-      const filtered = fullAccountList.filter((acc, index) => {
-        const parts = acc.split("|");
-        const user = (parts[0] || "").toLowerCase();
-        const password = (parts[1] || "").toLowerCase();
-        const email = (parts[2] || "").toLowerCase();
-        return user.includes(keyword) || password.includes(keyword) || email.includes(keyword);
-      });
-      filtered.forEach((acc, i) => {
-        const parts = acc.split("|");
-        const display = parts[2] || parts[0] || "No identifier";
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = `#${i + 1} - ${display}`;
-        accountSelect.appendChild(option);
-      });
-      document.getElementById("accountCount").textContent = `#TK: ${filtered.length}`;
-      document.getElementById("accountInfo").style.display = filtered.length > 0 ? "block" : "none";
+    
+      if (searchAll) {
+        db.ref("accounts").once("value").then(snapshot => {
+          const allData = snapshot.val() || {};
+          const matches = [];
+    
+          for (const group in allData) {
+            const accounts = allData[group] || [];
+            accounts.forEach((acc, idx) => {
+              const parts = acc.split("|");
+              const user = (parts[0] || "").toLowerCase();
+              const password = (parts[1] || "").toLowerCase();
+              const email = (parts[2] || "").toLowerCase();
+              if (user.includes(keyword) || password.includes(keyword) || email.includes(keyword)) {
+                matches.push({
+                  group,
+                  index: idx,
+                  acc,
+                  display: parts[2] || parts[0] || "No identifier"
+                });
+              }
+            });
+          }
+    
+          matches.forEach((match, i) => {
+            const opt = document.createElement("option");
+            opt.value = JSON.stringify({ group: match.group, index: match.index });
+            opt.textContent = `#${i + 1} - ${match.display} (${match.group})`;
+            accountSelect.appendChild(opt);
+          });
+    
+          document.getElementById("accountCount").textContent = `#TK: ${matches.length}`;
+          document.getElementById("accountInfo").style.display = matches.length > 0 ? "block" : "none";
+    
+          if (matches.length > 0) {
+            updateAccountInfo(matches[0].acc);
+            saveSelection(matches[0].group, matches[0].index);
+          }
+        });
+      } else {
+        const filtered = fullAccountList.filter((acc, index) => {
+          const parts = acc.split("|");
+          const user = (parts[0] || "").toLowerCase();
+          const password = (parts[1] || "").toLowerCase();
+          const email = (parts[2] || "").toLowerCase();
+          return user.includes(keyword) || password.includes(keyword) || email.includes(keyword);
+        });
+    
+        filtered.forEach((acc, i) => {
+          const parts = acc.split("|");
+          const display = parts[2] || parts[0] || "No identifier";
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = `#${i + 1} - ${display}`;
+          accountSelect.appendChild(option);
+        });
+    
+        document.getElementById("accountCount").textContent = `#TK: ${filtered.length}`;
+        document.getElementById("accountInfo").style.display = filtered.length > 0 ? "block" : "none";
+    
+        if (filtered.length > 0) {
+          updateAccountInfo(filtered[0]);
+        }
+      }
     }
+    
 
     function changeAccount() {
       const index = parseInt(document.getElementById("accountSelect").value, 10);
