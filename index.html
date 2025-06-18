@@ -306,6 +306,45 @@
     
     .btn-gray { background-color: #6c757d; }
     .btn-gray:hover { background-color: #555; }
+
+    .search-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    
+    .search-bar input[type="text"] {
+      flex: 1;
+      min-width: 120px;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    
+    .search-bar .checkbox-all {
+      display: flex;
+      align-items: center;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    
+    .search-bar button {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: none;
+      background: #ddd;
+      cursor: pointer;
+    }
+    
+    .search-bar #accountCount {
+      font-weight: bold;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+        
     
     @media (min-width: 600px) {
       #accountSelect + label {
@@ -352,18 +391,17 @@
     </div>
 
     <div class="select-group">
-      <div class="select-wrapper">
-        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 5px;">
-          <label for="accountSelect" style="font-weight: bold; color: #444;"></label>
-          <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" style="width: 120px;" />
-          <label style="display: flex; align-items: center; font-size: 0.8rem;">
-            <input type="checkbox" id="searchAllGroups" style="margin-right: 5px;" onchange="filterAccounts()" />
-            All
-          </label>          
-          <button onclick="deselectAllAccounts()" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 5px; background: #ddd; border: none; cursor: pointer;">Bỏ chọn</button>
-          <p id="accountCount" style="margin: 0; color: #666; font-size: 0.9rem;">#TK: 0</p>
-        </div>
-        <select id="accountSelect" multiple onchange="changeAccount()"></select>
+      <div class="search-bar">
+        <label for="accountSearch">📋 TK:</label>
+        <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" />
+        
+        <label class="checkbox-all">
+          <input type="checkbox" id="searchAllGroups" onchange="filterAccounts()" />
+          All
+        </label>
+      
+        <button onclick="deselectAllAccounts()">Bỏ chọn</button>
+        <span id="accountCount">#TK: 0</span>
       </div>
     </div>
 
