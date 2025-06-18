@@ -389,16 +389,21 @@
       <div class="field">
         <div class="label">Email: <span id="emailProvider" class="provider-label"></span></div>
         <div class="field-content">
-          <div class="value" id="email"></div>
-          <button class="copy-btn" onclick="copy('email')">Copy</button>
+          <div style="display: flex; flex: 1 1 100%; align-items: center; gap: 5px;">
+            <div class="value" id="email"></div>
+            <button class="copy-btn" onclick="copy('email')">Copy</button>
+          </div>
         </div>
+                
       </div>
       <div class="field">
         <div class="label">OTP:</div>
         <div class="field-content">
-          <div class="value" id="otp_result">Đang tải...</div>
-          <div class="spinner" id="otpSpinner"></div>
-          <button class="copy-btn" onclick="copy('otp_result')">Copy</button>
+          <div style="display: flex; flex: 1 1 100%; align-items: center; gap: 5px;">
+            <div class="value" id="otp_result">Đang tải...</div>
+            <div class="spinner" id="otpSpinner"></div>
+            <button class="copy-btn" onclick="copy('otp_result')">Copy</button>
+          </div>
         </div>
       </div>
       <div class="field">
