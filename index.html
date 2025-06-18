@@ -208,6 +208,15 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+	@media (min-height: 800px) {
+	  .search-bar {
+		padding-bottom: 15px; /* Tạo khoảng cách dưới để tránh bị che bởi thanh điều hướng */
+	  }
+	  .checkbox-all {
+		position: relative; /* Đảm bảo nhãn không bị che */
+		z-index: 1000; /* Ưu tiên hiển thị */
+	  }
+	}	
     @media (max-width: 480px) {
       .select-group {
         flex-direction: column;
@@ -311,12 +320,11 @@
 	.search-bar {
 	  display: flex;
 	  align-items: center;
-	  flex-wrap: nowrap; /* Ngăn wrap khi màn hình nhỏ */
 	  gap: 8px;
+	  padding: 5px 0;
 	  overflow-x: auto; /* Cho phép cuộn ngang nếu cần */
-	  padding: 5px 0; /* Thêm padding để tạo không gian */
+	  min-height: 40px; /* Đảm bảo chiều cao đủ để chứa nội dung */
 	}
-
     
 	.search-bar input[type="text"] {
 	  flex: 1;
@@ -353,23 +361,25 @@
     
 	@media (min-width: 600px) {
 	  .search-bar {
-		flex-wrap: wrap; /* Cho phép wrap trên màn hình lớn nếu cần */
+		flex-wrap: wrap; /* Cho phép wrap trên màn hình lớn */
 		justify-content: space-between; /* Phân bố đều không gian */
+		padding: 10px 0; /* Tăng padding để tạo không gian */
 	  }
 	  .checkbox-all {
-		min-width: 60px; /* Đảm bảo đủ không gian cho "All" */
-		margin: 0 10px; /* Tăng khoảng cách trên màn hình lớn */
+		min-width: 70px; /* Tăng không gian cho "All" trên màn hình lớn */
+		font-size: 0.9rem; /* Tăng kích thước chữ */
+		margin: 0 10px; /* Tăng margin để tránh chồng lấp */
 	  }
 	  .search-bar input[type="text"] {
-		max-width: 200px; /* Tăng kích thước ô tìm kiếm trên màn hình lớn */
+		max-width: 200px; /* Tăng kích thước ô tìm kiếm */
+		flex: 1 1 200px; /* Đảm bảo ô tìm kiếm có độ linh hoạt */
 	  }
-	}
-	@media (min-height: 800px) {
-	  .search-bar {
-		padding-bottom: 10px; /* Tạo khoảng cách dưới để tránh bị che */
+	  .search-bar button {
+		padding: 6px 10px; /* Điều chỉnh kích thước nút */
 	  }
-	  .checkbox-all {
-		font-size: 0.9rem; /* Tăng kích thước chữ trên màn hình lớn */
+	  #accountCount {
+		white-space: nowrap;
+		margin-left: auto; /* Đẩy #TK: 5 sang phải */
 	  }
 	}	
     .search-bar {
@@ -391,12 +401,14 @@
 	  align-items: center;
 	  white-space: nowrap; /* Ngăn chữ "All" bị cắt */
 	  font-size: 0.85rem;
-	  margin: 0 5px; /* Thêm margin để tránh chồng lấp */
+	  margin: 0 5px;
 	  flex-shrink: 0; /* Ngăn phần tử co lại quá mức */
+	  min-width: 50px; /* Đảm bảo không gian tối thiểu cho "All" */
 	}
 	.checkbox-all label {
-	  margin-left: 4px; /* Khoảng cách giữa checkbox và chữ "All" */
-	  display: inline-block; /* Đảm bảo nhãn hiển thị đúng */
+	  margin-left: 4px;
+	  display: inline-block;
+	  padding: 2px 5px; /* Thêm padding để nhãn dễ đọc hơn */
 	}	
 	/* Thêm vào cuối phần <style> */
 	.group-actions {
