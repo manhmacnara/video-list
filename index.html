@@ -318,11 +318,9 @@
 
     
     .search-bar input[type="text"] {
-      flex: 1 1 auto;
-      min-width: 100px;
-      padding: 6px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      flex: 1;
+      min-width: 120px;
+      max-width: 50%; /* thu nhỏ lại */
     }
 
     
@@ -417,23 +415,18 @@
     </div>
 
     <div class="select-group">
-      <div class="search-bar" style="flex-wrap: nowrap;">
-        <label for="accountSearch"></label>
+      <div class="search-bar full-width">
+        <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" style="flex: 1; max-width: 150px; min-width: 80px;" />
       
-        <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" style="flex: 1; min-width: 100px; max-width: 160px;" />
-      
-        <label class="checkbox-all" style="display: flex; align-items: center; white-space: nowrap; font-size: 0.85rem;">
-          <input type="checkbox" id="searchAllGroups" onchange="filterAccounts()" style="margin: 0 5px 0 10px;" />
+        <label for="searchAllGroups" style="display: flex; align-items: center; margin: 0 5px; font-size: 0.85rem;">
+          <input type="checkbox" id="searchAllGroups" onchange="filterAccounts()" style="margin-right: 4px;" />
           All
         </label>
       
-        <button onclick="deselectAllAccounts()" style="white-space: nowrap;">Reset</button>
-        <span id="accountCount" style="white-space: nowrap;">#TK: 0</span>
-      </div>         
-    <div style="margin-top: 5px;">
-      <select id="accountSelect" multiple onchange="changeAccount()" style="width: 100%; padding: 6px; border-radius: 6px; font-size: 0.9rem; max-height: 80px; overflow-y: auto;"></select>
-    </div>
-        
+        <button onclick="deselectAllAccounts()" style="padding: 5px 8px; font-size: 0.8rem;">Reset</button>
+      
+        <span id="accountCount" style="font-size: 0.8rem; white-space: nowrap;">#TK: 0</span>
+      </div>     
 
     <div id="addGroupForm" class="form-container">
       <input type="text" id="newGroupName" placeholder="Tên group..." />
