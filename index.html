@@ -426,7 +426,9 @@
         <button onclick="deselectAllAccounts()" style="padding: 5px 8px; font-size: 0.8rem;">Reset</button>
       
         <span id="accountCount" style="font-size: 0.8rem; white-space: nowrap;">#TK: 0</span>
-      </div>     
+      </div>
+      <select id="accountSelect" onchange="changeAccount()" style="width: 100%; margin-top: 10px;">
+      </select>
 
     <div id="addGroupForm" class="form-container">
       <input type="text" id="newGroupName" placeholder="Tên group..." />
