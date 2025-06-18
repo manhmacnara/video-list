@@ -886,7 +886,7 @@
         const accounts = res.val() || [];
         const newAccounts = accountLines.map(line => {
           const parts = line.split('|');
-          if (parts.length < 4) return null;
+          if (parts.length < 2) return null;
           const user = parts[0]?.trim() || '';
           const password = parts[1]?.trim() || '';
           const email = parts[2]?.trim() || '';
