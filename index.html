@@ -90,25 +90,30 @@
     }
     .field-content {
       display: flex;
-      align-items: stretch; /* Sửa từ center -> stretch để các phần tử cùng chiều cao */
-      gap: 10px;
+      align-items: stretch;
+      gap: 5px;
       flex-wrap: nowrap;
+      width: 100%;
+      overflow-x: auto;
     }
+
     .value {
       background: #eee;
       padding: 8px;
       border-radius: 5px;
-      flex-grow: 1;
-      min-width: 0;
+      max-width: 100%;
       overflow-x: auto;
       white-space: nowrap;
       word-break: keep-all;
-      scrollbar-width: none; /* Ẩn scrollbar Firefox */
+      flex-grow: 1;
+      min-width: 0;
+      scrollbar-width: none; /* Firefox */
     }
     
     .value::-webkit-scrollbar {
-      display: none; /* Ẩn scrollbar Chrome */
+      display: none; /* Chrome */
     }
+
 
 
     .copy-btn {
@@ -200,9 +205,12 @@
         justify-content: space-between;
       }
       .field-content {
-        flex-direction: row;
-        align-items: stretch;
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
         gap: 5px;
+        width: 100%;
+        overflow-x: auto;
       }
       .copy-btn {
         width: 50px;
