@@ -682,14 +682,17 @@
               const email = (parts[2] || "").toLowerCase();
               if (user.includes(keyword) || password.includes(keyword) || email.includes(keyword)) {
                 matches.push({
-                  group,
+                  group: group,
                   index: idx,
-                  acc,
+                  acc: acc,
                   display: parts[2] || parts[0] || "No identifier"
                 });
               }
             });
           }
+    
+          // Cập nhật fullAccountList nếu cần
+          fullAccountList = matches.map(m => m.acc);
     
           matches.forEach((match, i) => {
             const opt = document.createElement("option");
@@ -701,14 +704,8 @@
           document.getElementById("accountCount").textContent = `#TK: ${matches.length}`;
           document.getElementById("accountInfo").style.display = matches.length > 0 ? "block" : "none";
           if (matches.length > 0) {
-            const { group, index } = matches[0];
-            db.ref(`accounts/${group}`).once("value").then(snapshot => {
-              const list = snapshot.val() || [];
-              if (index >= 0 && index < list.length) {
-                updateAccountInfo(list[index]);
-                saveSelection(group, index);
-              }
-            });
+            updateAccountInfo(matches[0].acc);
+            saveSelection(matches[0].group, matches[0].index);
           }
         });
       } else {
@@ -787,6 +784,7 @@
     }
 
     function updateAccountInfo(line) {
+      console.log("Cập nhật tài khoản với line:", line); // Thêm log để debug
       const parts = line.split("|");
       const acc = {
         user: parts[0] || "",
@@ -823,12 +821,14 @@
         db.ref(`otpTimestamps/${key}`).once("value").then(snapshot => {
           const data = snapshot.val();
           document.getElementById("lastOtpTime").textContent = data && data.lastOtpTime ? new Date(data.lastOtpTime).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) : "Chưa có";
-        }).catch(error => console.error("Error loading OTP timestamp:", error));
+        }).catch(error => {
+          console.error("Lỗi tải thời gian OTP:", error);
+          document.getElementById("lastOtpTime").textContent = "Lỗi tải";
+        });
       } else {
         document.getElementById("lastOtpTime").textContent = "N/A";
       }
     }
-
     async function getHotmailOrGmailOtp(acc, key) {
       try {
         const response = await fetch("https://tool.unlimitmail.com/api/get_code_oauth2", {
