@@ -233,7 +233,7 @@
     #accountCount {
       margin: 0;
       color: #222;
-      font-size: 1.2rem;
+      font-size: 1.8rem;
       font-weight: bold;
       white-space: nowrap;
     }
@@ -528,7 +528,7 @@
           saveSelection(group, index);
         } else {
           document.getElementById("accountInfo").style.display = "none";
-          document.getElementById("accountCount").textContent = `Số tài khoản: 0`;
+          document.getElementById("accountCount").textContent = `Acc Number: 0`;
         }
       }).catch(error => {
         console.error("Error loading accounts for group:", error);
