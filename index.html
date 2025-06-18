@@ -1179,11 +1179,49 @@
 
     loadGroups();
   </script>
-  <div style="text-align: center; margin-top: 40px;">
-    <p>Xem hướng dẫn tại:</p>
-    <a href="https://lite.tiktok.com/t/ZS6rUfPCS/" target="_blank" style="color: #007bff; font-weight: bold;">
-      🎥 Link video
-    </a>
-  </div>  
+  <div id="videoLinks" style="margin: 15px 0;">
+    <h4>🎬 Chọn Video:</h4>
+    <div id="videoList"></div>
+  </div>
+  
+  <script>
+    const videoLinks = [
+      { title: "Video TikTok A", url: "https://www.tiktok.com/@user/video/123" },
+      { title: "Video TikTok B", url: "https://www.tiktok.com/@user/video/456" },
+      { title: "Video TikTok C", url: "https://www.tiktok.com/@user/video/789" },
+    ];
+  
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const usedToday = JSON.parse(localStorage.getItem("usedVideos") || "{}");
+  
+    function markVideoUsed(url) {
+      usedToday[today] = usedToday[today] || [];
+      if (!usedToday[today].includes(url)) {
+        usedToday[today].push(url);
+        localStorage.setItem("usedVideos", JSON.stringify(usedToday));
+      }
+    }
+  
+    function renderVideoLinks() {
+      const container = document.getElementById("videoList");
+      container.innerHTML = "";
+  
+      videoLinks.forEach(link => {
+        const isUsed = usedToday[today]?.includes(link.url);
+        const btn = document.createElement("button");
+        btn.textContent = isUsed ? `✅ ${link.title} (Đã dùng)` : link.title;
+        btn.disabled = isUsed;
+        btn.style = "margin: 5px; padding: 10px; border-radius: 6px; cursor: pointer;";
+        btn.onclick = () => {
+          markVideoUsed(link.url);
+          window.open(link.url, "_blank");
+          renderVideoLinks(); // Cập nhật lại nút sau khi chọn
+        };
+        container.appendChild(btn);
+      });
+    }
+  
+    renderVideoLinks();
+  </script>
 </body>
 </html>
