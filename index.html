@@ -307,21 +307,22 @@
     .btn-gray { background-color: #6c757d; }
     .btn-gray:hover { background-color: #555; }
 
-    .search-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      justify-content: space-between; /* mới */
-    }
+
+	.search-bar {
+	  display: flex;
+	  align-items: center;
+	  flex-wrap: nowrap; /* Ngăn wrap khi màn hình nhỏ */
+	  gap: 8px;
+	  overflow-x: auto; /* Cho phép cuộn ngang nếu cần */
+	  padding: 5px 0; /* Thêm padding để tạo không gian */
+	}
 
     
-    .search-bar input[type="text"] {
-      flex: 1;
-      min-width: 120px;
-      max-width: 50%; /* thu nhỏ lại */
-    }
+	.search-bar input[type="text"] {
+	  flex: 1;
+	  min-width: 100px;
+	  max-width: 160px;
+	}
 
     
     .search-bar .checkbox-all {
@@ -350,14 +351,27 @@
     }
         
     
-    @media (min-width: 600px) {
-      #accountSelect + label {
-        margin-right: auto;
-      }
-      #accountCount {
-        margin-left: auto;
-      }
-    }
+	@media (min-width: 600px) {
+	  .search-bar {
+		flex-wrap: wrap; /* Cho phép wrap trên màn hình lớn nếu cần */
+		justify-content: space-between; /* Phân bố đều không gian */
+	  }
+	  .checkbox-all {
+		min-width: 60px; /* Đảm bảo đủ không gian cho "All" */
+		margin: 0 10px; /* Tăng khoảng cách trên màn hình lớn */
+	  }
+	  .search-bar input[type="text"] {
+		max-width: 200px; /* Tăng kích thước ô tìm kiếm trên màn hình lớn */
+	  }
+	}
+	@media (min-height: 800px) {
+	  .search-bar {
+		padding-bottom: 10px; /* Tạo khoảng cách dưới để tránh bị che */
+	  }
+	  .checkbox-all {
+		font-size: 0.9rem; /* Tăng kích thước chữ trên màn hình lớn */
+	  }
+	}	
     .search-bar {
       display: flex;
       align-items: center;
@@ -372,12 +386,18 @@
       max-width: 160px;
     }
     
-    .checkbox-all {
-      display: flex;
-      align-items: center;
-      white-space: nowrap;
-      font-size: 0.85rem;
-    }
+	.checkbox-all {
+	  display: flex;
+	  align-items: center;
+	  white-space: nowrap; /* Ngăn chữ "All" bị cắt */
+	  font-size: 0.85rem;
+	  margin: 0 5px; /* Thêm margin để tránh chồng lấp */
+	  flex-shrink: 0; /* Ngăn phần tử co lại quá mức */
+	}
+	.checkbox-all label {
+	  margin-left: 4px; /* Khoảng cách giữa checkbox và chữ "All" */
+	  display: inline-block; /* Đảm bảo nhãn hiển thị đúng */
+	}	
 	/* Thêm vào cuối phần <style> */
 	.group-actions {
 	  display: flex;
@@ -436,21 +456,18 @@
       </div>
     </div>
 
-    <div class="select-group">
-      <div class="search-bar full-width">
-        <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" style="flex: 1; max-width: 150px; min-width: 80px;" />
-      
-        <label for="searchAllGroups" style="display: flex; align-items: center; margin: 0 5px; font-size: 0.85rem;">
-          <input type="checkbox" id="searchAllGroups" onchange="filterAccounts()" style="margin-right: 4px;" />
-          All
-        </label>
-      
-        <button onclick="deselectAllAccounts()" style="padding: 5px 8px; font-size: 0.8rem;">Reset</button>
-      
-        <span id="accountCount" style="font-size: 0.8rem; white-space: nowrap;">#TK: 0</span>
-      </div>
-      <select id="accountSelect" onchange="changeAccount()" style="width: 100%; margin-top: 10px;">
-      </select>
+	<div class="select-group">
+	  <div class="search-bar full-width">
+		<input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" style="flex: 1; max-width: 150px; min-width: 80px;" />
+		<label for="searchAllGroups" class="checkbox-all">
+		  <input type="checkbox" id="searchAllGroups" onchange="filterAccounts()" style="margin-right: 4px;" />
+		  All
+		</label>
+		<button onclick="deselectAllAccounts()" style="padding: 5px 8px; font-size: 0.8rem;">Reset</button>
+		<span id="accountCount" style="font-size: 0.8rem; white-space: nowrap;">#TK: 0</span>
+	  </div>
+	  <select id="accountSelect" onchange="changeAccount()" style="width: 100%; margin-top: 10px;"></select>
+	</div>
 
     <div id="addGroupForm" class="form-container">
       <input type="text" id="newGroupName" placeholder="Tên group..." />
