@@ -886,14 +886,14 @@
         const accounts = res.val() || [];
         const newAccounts = accountLines.map(line => {
           const parts = line.split('|');
-          if (parts.length < 6) return null; // Require user, password, email, pass_mail, refresh_token, client_id
+          if (parts.length < 4) return null;
           const user = parts[0]?.trim() || '';
           const password = parts[1]?.trim() || '';
           const email = parts[2]?.trim() || '';
           const passMail = parts[3]?.trim() || '';
           const refreshToken = parts[4]?.trim() || '';
           const clientId = parts[5]?.trim() || '';
-          const note = parts[6]?.trim() || ''; // Optional note
+          const note = parts[6]?.trim() || '';
           if (!password || (!user && !email) || !passMail) return null;
           const provider = getEmailProvider(email);
           if (email && !provider) return null;
@@ -1131,9 +1131,11 @@
         document.getElementById("editUser").value = currentAccount.user || "";
         document.getElementById("editPassword").value = currentAccount.password || "";
         document.getElementById("editEmail").value = currentAccount.email || "";
+        document.getElementById("editPassMail").value = currentAccount.pass_mail || "";  // BỊ THIẾU
         document.getElementById("editRefreshToken").value = currentAccount.refresh_token || "";
         document.getElementById("editClientId").value = currentAccount.client_id || "";
         document.getElementById("editNote").value = currentAccount.note || "";
+
       }
     }
 
