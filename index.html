@@ -96,7 +96,22 @@
       width: 100%;
       overflow-x: auto;
     }
-
+    .field-content.no-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+      width: 100%;
+    }
+    
+    .scroll-box {
+      overflow-x: auto;
+      flex-grow: 1;
+    }
+    
+    .scroll-box::-webkit-scrollbar {
+      display: none;
+    }
     .value {
       background: #eee;
       padding: 8px;
@@ -400,13 +415,12 @@
       </div>
       <div class="field">
         <div class="label">Email: <span id="emailProvider" class="provider-label"></span></div>
-        <div class="field-content">
-          <div style="display: flex; flex: 1 1 100%; align-items: center; gap: 5px;">
+        <div class="field-content no-wrap">
+          <div class="scroll-box">
             <div class="value" id="email"></div>
-            <button class="copy-btn" onclick="copy('email')">Copy</button>
           </div>
-        </div>
-                
+          <button class="copy-btn" onclick="copy('email')">Copy</button>
+        </div>                
       </div>
       <div class="field">
         <div class="label">OTP:</div>
