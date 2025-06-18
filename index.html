@@ -829,15 +829,18 @@
       const refreshToken = document.getElementById('newRefreshToken').value.trim();
       const clientId = document.getElementById('newClientId').value.trim();
       const note = document.getElementById('newNote').value.trim();
-      if (!password || (!user && !email) || !passMail) {
-        showToast("Please enter at least Password, Email, and Pass Mail!");
+    
+      // ✅ Chỉ yêu cầu password + user hoặc email
+      if (!password || (!user && !email)) {
+        showToast("Vui lòng nhập ít nhất Password và User hoặc Email!");
         return;
       }
-      const provider = getEmailProvider(email);
-      if (email && !provider) {
-        showToast("Email must be a valid Hotmail, Gmail, or mail.tm email!");
+    
+      if (email && !getEmailProvider(email)) {
+        showToast("Email phải là dạng hợp lệ: Hotmail, Gmail, hoặc mail.tm!");
         return;
       }
+    
       const accountString = `${user}|${password}|${email}|${passMail}|${refreshToken}|${clientId}|${note}`;
       db.ref('accounts/' + group).once('value').then(res => {
         const accounts = res.val() || [];
@@ -859,6 +862,7 @@
         showToast("Error accessing accounts!");
       });
     }
+    
 
     function toggleAddAccountLineForm() {
       const lineForm = document.getElementById('addAccountLineForm');
