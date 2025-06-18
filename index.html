@@ -251,8 +251,15 @@
       white-space: nowrap;
     }
     
-    .btn-blue { background-color: #007bff; }
-    .btn-blue:hover { background-color: #0056b3; }
+    .btn-blue {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-blue:hover {
+      background-color: #0056b3;
+    }
     
     .btn-red { background-color: #dc3545; }
     .btn-red:hover { background-color: #b52a30; }
@@ -274,10 +281,10 @@
         </div>
       </div>
       <div class="action-buttons">
-        <button onclick="toggleAddGroupForm()">➕</button>
-        <button onclick="deleteGroup()" class="secondary">🗑</button>
+        <button onclick="toggleAddGroupForm()">➕Gr</button>
+        <button onclick="deleteGroup()" class="secondary">🗑Gr</button>
         <div style="position: relative;">
-          <button class="bottom" onclick="toggleMoveMenu()">📤 Chuyển</button>
+          <button class="bottom" onclick="toggleMoveMenu()">📤Move Gr </button>
           <div id="moveMenu" style="position: absolute; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; z-index: 1000;">
             <button onclick="moveSingleAccount()" style="width: 100%; text-align: left;">🔁 Chuyển tài khoản đang chọn</button>
             <button onclick="moveSelectedAccounts()" style="width: 100%; text-align: left;">✅ Chuyển các tài khoản đã tick</button>
@@ -384,14 +391,13 @@
         <div class="label">Ghi chú:</div>
         <div class="field-content">
           <div class="value" id="note"></div>
-          <button class="copy-btn" onclick="copy('note')">Copy</button>
+          <button class="btn-blue" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px;" onclick="getOtp()">📩 Lấy OTP</button>
         </div>
       </div>
       <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">Chưa có</span></p>
       <div class="action-button-grid">
         <button class="btn-gray" onclick="prevAccount()">⬅ Trước</button>
-        <button class="btn-gray" onclick="nextAccount()">Tiếp ➡</button>
-        <button class="btn-blue" onclick="getOtp()">📩 Lấy OTP</button>
+        <button class="btn-gray" onclick="nextAccount()">Sau ➡</button>
         <button class="btn-red" onclick="deleteAccount()">🗑 Xóa TK này</button>
         <button class="btn-gray" onclick="toggleEditAccount()">✏️ Sửa TK</button>
         <button class="btn-blue" onclick="bindDevice()">📱 Gán thiết bị</button>
