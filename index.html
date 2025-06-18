@@ -700,10 +700,15 @@
     
           document.getElementById("accountCount").textContent = `#TK: ${matches.length}`;
           document.getElementById("accountInfo").style.display = matches.length > 0 ? "block" : "none";
-    
           if (matches.length > 0) {
-            updateAccountInfo(matches[0].acc);
-            saveSelection(matches[0].group, matches[0].index);
+            const { group, index } = matches[0];
+            db.ref(`accounts/${group}`).once("value").then(snapshot => {
+              const list = snapshot.val() || [];
+              if (index >= 0 && index < list.length) {
+                updateAccountInfo(list[index]);
+                saveSelection(group, index);
+              }
+            });
           }
         });
       } else {
