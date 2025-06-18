@@ -657,21 +657,38 @@
       }
     }
     
-
     function changeAccount() {
-      const index = parseInt(document.getElementById("accountSelect").value, 10);
-      const group = document.getElementById("groupSelect").value;
-      if (!group || isNaN(index)) return;
-      db.ref("accounts/" + group).once("value").then(snapshot => {
-        const list = snapshot.val();
-        if (Array.isArray(list) && index >= 0 && index < list.length) {
-          updateAccountInfo(list[index]);
-          saveSelection(group, index);
-        }
-      }).catch(error => {
-        console.error("Error loading account:", error);
-        showToast("Lỗi tải thông tin tài khoản!");
-      });
+      const selected = document.getElementById("accountSelect").value;
+    
+      try {
+        // Nếu value là JSON (tìm kiếm toàn bộ nhóm)
+        const parsed = JSON.parse(selected);
+        const group = parsed.group;
+        const index = parsed.index;
+    
+        if (!group || typeof index !== "number") return;
+    
+        db.ref("accounts/" + group).once("value").then(snapshot => {
+          const list = snapshot.val() || [];
+          if (Array.isArray(list) && index >= 0 && index < list.length) {
+            updateAccountInfo(list[index]);
+            saveSelection(group, index);
+          }
+        });
+      } catch (err) {
+        // Nếu là tìm trong nhóm hiện tại (value là số)
+        const index = parseInt(selected, 10);
+        const group = document.getElementById("groupSelect").value;
+        if (!group || isNaN(index)) return;
+    
+        db.ref("accounts/" + group).once("value").then(snapshot => {
+          const list = snapshot.val() || [];
+          if (Array.isArray(list) && index >= 0 && index < list.length) {
+            updateAccountInfo(list[index]);
+            saveSelection(group, index);
+          }
+        });
+      }
     }
 
     function prevAccount() {
