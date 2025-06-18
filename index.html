@@ -313,7 +313,9 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 10px;
+      justify-content: space-between; /* mới */
     }
+
     
     .search-bar input[type="text"] {
       flex: 1 1 auto;
@@ -397,13 +399,11 @@
     <div class="select-group">
       <div class="search-bar">
         <label for="accountSearch"></label>
-        <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" />
-        
-        <label class="checkbox-all">
-          <input type="checkbox" id="searchAllGroups" onchange="filterAccounts()" />
-          All
-        </label>
-      
+        <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" />      
+        <div style="display: flex; align-items: center;">
+          <input type="checkbox" id="searchAllGroups" onchange="filterAccounts()" style="margin-right: 5px;" />
+          <label for="searchAllGroups" style="margin: 0; font-size: 0.85rem;">All</label>
+        </div>
         <button onclick="deselectAllAccounts()">Reset</button>
         <span id="accountCount">#TK: 0</span>
       </div>
