@@ -234,6 +234,32 @@
       75% { transform: translateX(-5px); }
       100% { transform: translateX(0); }
     }
+    .action-button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+      margin-top: 15px;
+    }
+    
+    .action-button-grid button {
+      padding: 10px;
+      font-size: 0.85rem;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    
+    .btn-blue { background-color: #007bff; }
+    .btn-blue:hover { background-color: #0056b3; }
+    
+    .btn-red { background-color: #dc3545; }
+    .btn-red:hover { background-color: #b52a30; }
+    
+    .btn-gray { background-color: #6c757d; }
+    .btn-gray:hover { background-color: #555; }
+        
   </style>
 </head>
 <body>
@@ -362,18 +388,16 @@
         </div>
       </div>
       <p><b>Lần lấy OTP gần nhất:</b> <span id="lastOtpTime">Chưa có</span></p>
-      <div class="action-buttons bottom">
-        <button class="bottom nav-btn" onclick="prevAccount()">⬅ Trước</button>
-        <button class="bottom nav-btn" onclick="nextAccount()">Tiếp ➡</button>
-        <button class="bottom" onclick="getOtp()">📩 Lấy OTP</button>
-        <button class="bottom secondary" onclick="deleteAccount()">🗑 Xóa TK này</button>
-        <button class="bottom nav-btn" onclick="toggleEditAccount()">✏️ Sửa TK</button>
-      </div>
-      <div class="action-buttons bottom" style="margin-top: 5px;">
-        <button class="bottom" onclick="registerDevice()">📱 Gán thiết bị</button>
-        <button class="bottom secondary" onclick="removeDevice()">❌ Xóa thiết bị</button>
-        <button class="bottom" onclick="findEmailByDeviceId()">🔍 Kiểm tra tài khoản đã gán</button>
-      </div>     
+      <div class="action-button-grid">
+        <button class="btn-gray" onclick="prevAccount()">⬅ Trước</button>
+        <button class="btn-gray" onclick="nextAccount()">Tiếp ➡</button>
+        <button class="btn-blue" onclick="getOtp()">📩 Lấy OTP</button>
+        <button class="btn-red" onclick="deleteAccount()">🗑 Xóa TK này</button>
+        <button class="btn-gray" onclick="toggleEditAccount()">✏️ Sửa TK</button>
+        <button class="btn-blue" onclick="bindDevice()">📱 Gán thiết bị</button>
+        <button class="btn-red" onclick="unbindDevice()">❌ Xóa thiết bị</button>
+        <button class="btn-blue" onclick="checkDevice()">🔍 Kiểm tra tài khoản đã gán</button>
+      </div>   
     </div>
   </div>
 
