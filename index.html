@@ -298,7 +298,7 @@
         <button onclick="toggleAddGroupForm()">➕Group</button>
         <button onclick="deleteGroup()" class="secondary">🗑Group</button>
         <div style="position: relative;">
-          <button class="bottom" onclick="toggleMoveMenu()">Move Group</button>
+          <button class="bottom" onclick="toggleMoveMenu()">MoveGr</button>
           <div id="moveMenu" style="position: absolute; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; z-index: 1000;">
             <button onclick="moveSingleAccount()" style="width: 100%; text-align: left;">🔁 Chuyển tài khoản đang chọn</button>
             <button onclick="moveSelectedAccounts()" style="width: 100%; text-align: left;">✅ Chuyển các tài khoản đã tick</button>
@@ -318,7 +318,7 @@
     <div class="select-group">
       <div class="select-wrapper">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-          <label for="accountSelect" style="font-weight: bold; color: #444;">:</label>
+          <label for="accountSelect" style="font-weight: bold; color: #444;"></label>
           <input type="text" id="accountSearch" placeholder="Tìm tài khoản..." oninput="filterAccounts()" style="width: 120px;" />
           <label style="display: flex; align-items: center; font-size: 0.8rem;">
             <input type="checkbox" id="searchAllGroups" style="margin-right: 5px;" onchange="filterAccounts()" />
