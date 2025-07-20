@@ -1663,8 +1663,7 @@
   }
 
   function getStoredVideos() {
-    const saved = localStorage.getItem("videoLinks");
-    return saved ? JSON.parse(saved) : [
+    const defaultList = [
       { title: "lite 1", url: "https://lite.tiktok.com/t/ZS6rUfPCS/" },
       { title: "lite 2", url: "https://lite.tiktok.com/t/ZS6rUywGN/" },
       { title: "lite 3", url: "https://lite.tiktok.com/t/ZS6rUjMPr/" },
@@ -1682,6 +1681,21 @@
       { title: "thuong 3", url: "https://www.tiktok.com/@faileskeb7p/video/7390359695346748689" },
       { title: "thuong 4", url: "https://www.tiktok.com/@bebeushi/video/7380604897227574535" },
     ];
+
+    const saved = localStorage.getItem("videoLinks");
+    if (!saved) return defaultList;
+
+    const savedList = JSON.parse(saved);
+    // Gộp saved + default (loại trùng URL)
+    const all = [...savedList];
+
+    defaultList.forEach(def => {
+      if (!all.some(v => v.url === def.url)) {
+        all.push(def);
+      }
+    });
+
+    return all;
   }
 
   function saveVideos(list) {
