@@ -1601,85 +1601,188 @@
         });
     }
         
-        
+
   </script>
   <div id="videoLinks" style="margin: 15px 0;">
-    <h4>                   🎬 Chọn Video 60 Phút TikTok:</h4>
-    <div id="videoList"></div>
+  <h4>🎬 Chọn Video 60 Phút TikTok:</h4>
+
+  <!-- Nút bật chế độ xoá -->
+  <button id="deleteModeBtn"
+    onclick="if (isDeleteMode) deleteSelectedVideos(); else toggleDeleteMode();"
+    style="margin: 10px 0; padding: 6px 14px; border-radius: 8px; background-color: #f44336; color: white; font-weight: bold; border: none; font-size: 14px;">
+    🔘 Bật chế độ xoá
+  </button>
+
+  <!-- Danh sách video -->
+  <div id="videoList" style="margin-bottom: 15px;"></div>
+
+  <!-- Form thêm video -->
+  <div id="addVideoForm" style="margin-top: 15px;">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <input type="text" id="newVideoTitle" placeholder="Tên video"
+        style="padding: 10px; flex: 1; font-size: 16px;" />
+      <input type="text" id="newVideoUrl" placeholder="Link video TikTok"
+        style="padding: 10px; flex: 2; font-size: 16px;" />
+      <button onclick="addVideo()"
+        style="padding: 10px 20px; background-color: #4CAF50; color: white; font-size: 16px; border: none; border-radius: 6px;">
+        ➕ Thêm Video
+      </button>
+    </div>
   </div>
-  
+
   <script>
-	const videoLinks = [
-	  { title: "lite 1", url: "https://lite.tiktok.com/t/ZS6rUfPCS/" },
-	  { title: "lite 2", url: "https://lite.tiktok.com/t/ZS6rUywGN/" },
-	  { title: "lite 3", url: "https://lite.tiktok.com/t/ZS6rUjMPr/" },
-	  { title: "lite 4", url: "https://lite.tiktok.com/t/ZS6rUAkTU/" },
-	  { title: "lite 5", url: "https://lite.tiktok.com/t/ZS6rUBxQT/" },
-	  { title: "lite 6", url: "https://lite.tiktok.com/t/ZS6rUHbos/" },
-	  { title: "lite 7", url: "https://lite.tiktok.com/t/ZS6rU2cGQ/" },
-	  { title: "lite 8", url: "https://lite.tiktok.com/t/ZS6rUK3U8/" },
-	  { title: "lite 9", url: "https://lite.tiktok.com/t/ZS6rUwGGu/" },
-	  { title: "lite 10", url: "https://lite.tiktok.com/t/ZS6rUK5y6/" },
-	  { title: "lite 11", url: "https://lite.tiktok.com/t/ZS6rydhRX/" },
-	  { title: "lite 12", url: "https://lite.tiktok.com/t/ZS6rUcQRj/" },  
-	  { title: "thuong 1", url: "https://www.tiktok.com/@timerzxc/video/7421407239560301831?share_app_id=473824" },
-	  { title: "thuong 2", url: "https://www.tiktok.com/@faileskeb7p/video/7389890599555566849?share_app_id=473824" },
-	  { title: "thuong 3", url: "https://www.tiktok.com/@faileskeb7p/video/7390359695346748689?share_app_id=473824" },
-	  { title: "thuong 4", url: "https://www.tiktok.com/@bebeushi/video/7380604897227574535?share_app_id=473824" },      
-	];
+  const videoLinks = [
+    { title: "lite 1", url: "https://lite.tiktok.com/t/ZS6rUfPCS/" },
+    { title: "lite 2", url: "https://lite.tiktok.com/t/ZS6rUywGN/" },
+    { title: "lite 3", url: "https://lite.tiktok.com/t/ZS6rUjMPr/" },
+    { title: "lite 4", url: "https://lite.tiktok.com/t/ZS6rUAkTU/" },
+    { title: "lite 5", url: "https://lite.tiktok.com/t/ZS6rUBxQT/" },
+    { title: "lite 6", url: "https://lite.tiktok.com/t/ZS6rUHbos/" },
+    { title: "lite 7", url: "https://lite.tiktok.com/t/ZS6rU2cGQ/" },
+    { title: "lite 8", url: "https://lite.tiktok.com/t/ZS6rUK3U8/" },
+    { title: "lite 9", url: "https://lite.tiktok.com/t/ZS6rUwGGu/" },
+    { title: "lite 10", url: "https://lite.tiktok.com/t/ZS6rUK5y6/" },
+    { title: "lite 11", url: "https://lite.tiktok.com/t/ZS6rydhRX/" },
+    { title: "lite 12", url: "https://lite.tiktok.com/t/ZS6rUcQRj/" },  
+    { title: "thuong 1", url: "https://www.tiktok.com/@timerzxc/video/7421407239560301831" },
+    { title: "thuong 2", url: "https://www.tiktok.com/@faileskeb7p/video/7389890599555566849" },
+    { title: "thuong 3", url: "https://www.tiktok.com/@faileskeb7p/video/7390359695346748689" },
+    { title: "thuong 4", url: "https://www.tiktok.com/@bebeushi/video/7380604897227574535" },      
+  ];
 
-	function getCurrentDate() {
-	  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' }); // Sử dụng múi giờ JST (UTC+9)
-	}
+  let isDeleteMode = false;
 
-	function resetUsedVideos() {
-	  const currentDate = getCurrentDate();
-	  const usedToday = JSON.parse(localStorage.getItem("usedVideos") || "{}");
-	  const lastUsedDate = Object.keys(usedToday)[0] || currentDate;
+  function getCurrentDate() {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' });
+  }
 
-	  if (lastUsedDate !== currentDate) {
-		localStorage.setItem("usedVideos", "{}"); // Reset khi ngày mới (JST)
-	  }
-	}
+  function resetUsedVideos() {
+    const currentDate = getCurrentDate();
+    const usedToday = JSON.parse(localStorage.getItem("usedVideos") || "{}");
+    const lastUsedDate = Object.keys(usedToday)[0] || currentDate;
 
-	function markVideoUsed(url) {
-	  const currentDate = getCurrentDate();
-	  let usedToday = JSON.parse(localStorage.getItem("usedVideos") || "{}");
-	  usedToday[currentDate] = usedToday[currentDate] || [];
-	  if (!usedToday[currentDate].includes(url)) {
-		usedToday[currentDate].push(url);
-		localStorage.setItem("usedVideos", JSON.stringify(usedToday));
-	  }
-	}
+    if (lastUsedDate !== currentDate) {
+      localStorage.setItem("usedVideos", "{}");
+    }
+  }
 
-	function renderVideoLinks() {
-	  const container = document.getElementById("videoList");
-	  container.innerHTML = "";
+  function markVideoUsed(url) {
+    const currentDate = getCurrentDate();
+    let usedToday = JSON.parse(localStorage.getItem("usedVideos") || "{}");
+    usedToday[currentDate] = usedToday[currentDate] || [];
+    if (!usedToday[currentDate].includes(url)) {
+      usedToday[currentDate].push(url);
+      localStorage.setItem("usedVideos", JSON.stringify(usedToday));
+    }
+  }
 
-	  // Reset trạng thái video nếu ngày mới (JST)
-	  resetUsedVideos();
+  function getStoredVideos() {
+    const saved = localStorage.getItem("videoLinks");
+    return saved ? JSON.parse(saved) : [...videoLinks];
+  }
 
-	  const usedToday = JSON.parse(localStorage.getItem("usedVideos") || "{}");
-	  const currentDate = getCurrentDate();
+  function saveVideos(list) {
+    localStorage.setItem("videoLinks", JSON.stringify(list));
+  }
 
-	  videoLinks.forEach(link => {
-		const isUsed = usedToday[currentDate]?.includes(link.url) || false;
-		const btn = document.createElement("button");
-		btn.textContent = isUsed ? `✅ ${link.title} (Đã dùng)` : link.title;
-		btn.disabled = isUsed;
-		btn.style = "margin: 5px; padding: 10px; border-radius: 6px; cursor: pointer;";
-		btn.onclick = () => {
-		  if (!isUsed) {
-			markVideoUsed(link.url);
-			window.open(link.url, "_blank");
-			renderVideoLinks(); // Cập nhật lại nút sau khi chọn
-		  }
-		};
-		container.appendChild(btn);
-	  });
-	}
+  function addVideo() {
+    const title = document.getElementById("newVideoTitle").value.trim();
+    const url = document.getElementById("newVideoUrl").value.trim();
+    if (!title || !url) {
+      showToast("Vui lòng nhập đầy đủ tên và link!");
+      return;
+    }
 
-	renderVideoLinks();
+    const list = getStoredVideos();
+    if (list.some(v => v.url === url)) {
+      showToast("Video này đã tồn tại!");
+      return;
+    }
+
+    list.push({ title, url });
+    saveVideos(list);
+    renderVideoLinks();
+    document.getElementById("newVideoTitle").value = '';
+    document.getElementById("newVideoUrl").value = '';
+    showToast("Đã thêm video!");
+  }
+
+  function deleteSelectedVideos() {
+    const checkboxes = document.querySelectorAll("#videoList input[type='checkbox']:checked");
+    const list = getStoredVideos();
+    const indexesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
+    const newList = list.filter((_, i) => !indexesToDelete.includes(i));
+
+    saveVideos(newList);
+    isDeleteMode = false;
+    showToast("Đã xoá video được chọn!");
+    renderVideoLinks();
+  }
+
+  function toggleDeleteMode() {
+    isDeleteMode = !isDeleteMode;
+    renderVideoLinks();
+    const btn = document.getElementById("deleteModeBtn");
+    btn.textContent = isDeleteMode ? "🗑 Xóa video đã chọn" : "🔘 Bật chế độ xoá";
+  }
+
+  function renderVideoLinks() {
+    const container = document.getElementById("videoList");
+    container.innerHTML = "";
+
+    resetUsedVideos();
+    const usedToday = JSON.parse(localStorage.getItem("usedVideos") || "{}");
+    const currentDate = getCurrentDate();
+    const list = getStoredVideos();
+
+    container.style = "display: flex; flex-wrap: wrap; gap: 8px; align-items: center;";
+
+    list.forEach((link, index) => {
+      const isUsed = usedToday[currentDate]?.includes(link.url) || false;
+
+      const wrapper = document.createElement("div");
+      wrapper.style = "display: flex; align-items: center; gap: 4px; flex-wrap: nowrap;";
+
+      const btn = document.createElement("button");
+      btn.textContent = isUsed ? `✅ ${link.title}` : link.title;
+      btn.disabled = isUsed;
+      btn.onclick = () => {
+        if (!isUsed && !isDeleteMode) {
+          markVideoUsed(link.url);
+          window.open(link.url, "_blank");
+          renderVideoLinks();
+        }
+      };
+      btn.style = `
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        white-space: nowrap;
+      `;
+
+      if (isDeleteMode) {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.index = index;
+        checkbox.style.marginRight = "4px";
+        wrapper.appendChild(checkbox);
+      }
+
+      wrapper.appendChild(btn);
+      container.appendChild(wrapper);
+    });
+  }
+
+  function showToast(msg) {
+    alert(msg); // Có thể thay bằng toast đẹp hơn nếu dùng thư viện
+  }
+
+  renderVideoLinks();
   </script>
+
 </body>
 </html>
