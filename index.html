@@ -1221,6 +1221,9 @@
     </div>
 
     <script>
+      const NON_BLOCKING_URLS = [
+        "https://lite.tiktok.com/t/ZSMx13u7h/" // URL chung của lite1..lite5
+      ];      
       let isDeleteMode = false;
       function toggleDeleteMode() {
         isDeleteMode = !isDeleteMode;
@@ -1247,11 +1250,18 @@
         if (lastUsedDate !== currentDate) { localStorage.setItem("usedVideos", "{}"); }
       }
       function markVideoUsed(url) {
+        // ⬇️ Bỏ đánh dấu nếu là URL loại trừ
+        if (NON_BLOCKING_URLS.includes(url)) return;
+      
         const currentDate = getCurrentDate();
         let usedToday = JSON.parse(localStorage.getItem("usedVideos") || "{}");
         usedToday[currentDate] = usedToday[currentDate] || [];
-        if (!usedToday[currentDate].includes(url)) { usedToday[currentDate].push(url); localStorage.setItem("usedVideos", JSON.stringify(usedToday)); }
+        if (!usedToday[currentDate].includes(url)) {
+          usedToday[currentDate].push(url);
+          localStorage.setItem("usedVideos", JSON.stringify(usedToday));
+        }
       }
+
       function getStoredVideos() {
         const defaultList = [
           { title: "lite1", url: "https://lite.tiktok.com/t/ZSMx13u7h/" },
@@ -1308,7 +1318,9 @@
         const currentDate = getCurrentDate();
         const list = getStoredVideos();
         list.forEach((link, index) => {
-          const isUsed = usedToday[currentDate]?.includes(link.url) || false;
+          const isExcluded = NON_BLOCKING_URLS.includes(link.url);
+          // ⬇️ SỬA: URL loại trừ sẽ luôn coi như chưa dùng
+          const isUsed = !isExcluded && (usedToday[currentDate]?.includes(link.url) || false);
           const wrapper = document.createElement("div");
           wrapper.style = "display: flex; align-items: center; gap: 4px;";
           if (isDeleteMode) {
@@ -1317,9 +1329,16 @@
           }
           const btn = document.createElement("button");
           btn.textContent = isUsed ? `✅ ${link.title}` : link.title;
-          btn.disabled = isUsed;
-          btn.onclick = () => { if (!isUsed && !isDeleteMode) { markVideoUsed(link.url); window.open(link.url, "_blank"); renderVideoLinks(); } };
-          btn.style = `padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; background-color: #2196F3; color: white; border: none; white-space: nowrap;`;
+          btn.disabled = isUsed; // URL loại trừ => luôn false, không bị disable
+          btn.onclick = () => {
+            if (!isDeleteMode) {
+              markVideoUsed(link.url);    // URL loại trừ sẽ không bị ghi vào used
+              window.open(link.url, "_blank");
+              renderVideoLinks();
+            }
+          };
+          btn.style = "padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; background-color: #2196F3; color: white; border: none; white-space: nowrap;";
+
           wrapper.appendChild(btn);
           container.appendChild(wrapper);
         });
